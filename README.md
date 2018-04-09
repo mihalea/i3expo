@@ -24,7 +24,7 @@ Compile the `prtscn.c` as follows:
 
 Put the `prtscn.so` in the same directory as the Python script (or adjust the location in the code).
 
-Put `config` into `$XDG_CONFIG_DIR/i3expo/config` and at the very least adjust the grid settings and the number of workspaces. These are the only mandatory options. For the other options, `None` or invalid values will usually (when `ConfigParser` throws a `ValueError`) be interpreted as "use the default". Colors can be specified by using their PyGame names or in #fff or #ffffff hex.
+Put `defaultconfig` into `$XDG_CONFIG_DIR/i3expo/config` and at the very least adjust the grid settings and the number of workspaces. These are the only mandatory options. For the other options, `None` or invalid values will usually (when `ConfigParser` throws a `ValueError`) be interpreted as "use the default". Colors can be specified by using their PyGame names or in #fff or #ffffff hex.
 
 Run `i3expod.py`, preferably in a terminal in order to catch any errors in this pre-alpha state.
 
