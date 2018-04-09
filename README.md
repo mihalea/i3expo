@@ -18,13 +18,11 @@ Example output:
 
 # Usage
 
-Compile the `prntscn.cc` as follows:
+Compile the `prtscn.c` as follows:
 
 `gcc -shared -O3 -Wall -fPIC -Wl,-soname,prtscn -o prtscn.so prtscn.c -lX11`
 
-The library might nor compile for you, in which case you have to remove the `extern "C" ` from the function definitions and also maybe change `Xutil.h` to `Xlib.h`. If a C programmer can tell me why the former may be necessary or submits a pull request, I'd be glad.
-
-Put the prntscn.so in the same directory as the Python script (or adjust the location in the code).
+Put the `prtscn.so` in the same directory as the Python script (or adjust the location in the code).
 
 Put `config` into `$XDG_CONFIG_DIR/i3expo/config` and at the very least adjust the grid settings and the number of workspaces. These are the only mandatory options. For the other options, `None` or invalid values will usually (when `ConfigParser` throws a `ValueError`) be interpreted as "use the default". Colors can be specified by using their PyGame names or in #fff or #ffffff hex.
 

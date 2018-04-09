@@ -3,8 +3,8 @@
 #include <X11/Xutil.h>
 //Compile hint: gcc -shared -O3 -lX11 -fPIC -Wl,-soname,prtscn -o prtscn.so prtscn.c
 
-extern "C" void getScreen(const int, const int, const int, const int, unsigned char *);
-extern "C" void getScreen(const int xx,const int yy,const int W, const int H, /*out*/ unsigned char * data) 
+void getScreen(const int, const int, const int, const int, unsigned char *);
+void getScreen(const int xx,const int yy,const int W, const int H, /*out*/ unsigned char * data) 
 {
    Display *display = XOpenDisplay(NULL);
    Window root = DefaultRootWindow(display);
