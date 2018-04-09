@@ -48,6 +48,8 @@ The UI currently cannot be displayed if there is a fullscreen window already pre
 
 Stalled windows whose content i3 doesn't know cause interface bugs and could probably be handled better, but this needs more testing.
 
+There are seemingly random and fairly rare `json.decoder.JSONDecodeError`s that make the whole thing stop working. This is probably i3ipc's fault and needs to be handled.
+
 # Todo
 
 It's theoretically feasible to take the window information from i3's tree and allow for dragging of windows from one workspace to another or even from container to container. However, this would be massively complex (especially on the UI side) and it's not clear if it would be worth the effort.
