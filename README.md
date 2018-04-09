@@ -48,6 +48,8 @@ This is pre-alpha software and pretty much untested. It works for my own, single
 
 The UI currently cannot be displayed if there is a fullscreen window already present, even if it isn't fullscreened itself. It's not clear why this happens and if it's a general PyGame problem that can be fixed.
 
+Stalled windows whose content i3 doesn't know cause interface bugs and could probably be handled better, but this needs more testing.
+
 # Todo
 
 It's theoretically feasible to take the window information from i3's tree and allow for dragging of windows from one workspace to another or even from container to container. However, this would be massively complex (especially on the UI side) and it's not clear if it would be worth the effort.
