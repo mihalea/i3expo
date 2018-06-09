@@ -46,9 +46,9 @@ def signal_show(signal, frame):
         global_updates_running = True
     else:
         root = i3.get_tree()
-        if root.find_focused().type != 'workspace' and root.find_focused().fullscreen_mode == 1:
-            print('Cannot open - fullscreen window present!')
-            return False
+        #if root.find_focused().type != 'workspace' and root.find_focused().fullscreen_mode == 1:
+        #    print('Cannot open - fullscreen window present!')
+        #    return False
         global_updates_running = False
         ui_thread = Thread(target = show_ui)
         ui_thread.daemon = True
@@ -189,13 +189,16 @@ def init_knowledge():
     for workspace in root.workspaces():
         update_workspace(workspace)
 
+last_update = 0
+
 def update_state(i3, e):
+    global last_update
+
     if not global_updates_running:
         return False
-
-    current_workspace = i3.get_tree().find_focused().workspace()
-    update_workspace(current_workspace)
-    global_knowledge[current_workspace.num]['screenshot'] = grab_screen()
+    if time.time() - last_update < 0.1:
+        return False
+    last_update = time.time()
 
     root = i3.get_tree()
     deleted = []
@@ -204,6 +207,17 @@ def update_state(i3, e):
             deleted += [num]
     for num in deleted:
         del(global_knowledge[num])
+
+    current_workspace = root.find_focused().workspace()
+    update_workspace(current_workspace)
+
+    screenshot = grab_screen()
+
+    #time.sleep(0.5)
+
+    if current_workspace.num == i3ipc.Connection().get_tree().find_focused().workspace().num:
+        global_knowledge[current_workspace.num]['screenshot'] = screenshot
+
 
 def get_hovered_frame(mpos, frames):
     for frame in frames.keys():
@@ -481,13 +495,17 @@ if __name__ == '__main__':
     init_knowledge()
     update_state(i3, None)
 
-    i3.on('window', update_state)
-    i3.on('workspace', update_state)
+    i3.on('window::new', update_state)
+    i3.on('window::close', update_state)
+    i3.on('window::move', update_state)
+    i3.on('window::floating', update_state)
+    i3.on('window::fullscreen_mode', update_state)
+    #i3.on('workspace', update_state)
 
     i3_thread = Thread(target = i3.main)
     i3_thread.daemon = True
     i3_thread.start()
 
     while True:
-        time.sleep(5)
+        time.sleep(1)
         update_state(i3, None)
