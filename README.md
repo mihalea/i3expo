@@ -46,7 +46,7 @@ This is pre-alpha software and pretty much untested. It works for my own, single
 
 Stalled windows whose content i3 doesn't know cause interface bugs and could probably be handled better, but this needs more testing.
 
-Some kind of event is apparently being generated on the target workspace. Need to find out what it is.
+Some kind of event is apparently being generated on the target workspace. https://pastebin.com/3ba7KLLP looks unremarkable, but it makes vim scroll?
 
 Sometimes (parts of) images end up on the wrong screen. This appears impossible to catch in Python and probably has something to do with X buffering the data XGetImage reads from.
 

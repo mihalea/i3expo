@@ -438,7 +438,7 @@ def show_ui():
                 pygame.event.clear()
                 break
 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONUP:
                 use_mouse = True
                 jump = True
                 pygame.event.clear()
