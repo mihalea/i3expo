@@ -45,10 +45,7 @@ def signal_show(signal, frame):
     if not global_updates_running:
         global_updates_running = True
     else:
-        root = i3.get_tree()
-        #if root.find_focused().type != 'workspace' and root.find_focused().fullscreen_mode == 1:
-        #    print('Cannot open - fullscreen window present!')
-        #    return False
+        i3.command('workspace i3expod-temporary-workspace')
         global_updates_running = False
         ui_thread = Thread(target = show_ui)
         ui_thread.daemon = True

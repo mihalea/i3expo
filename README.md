@@ -46,15 +46,9 @@ This is pre-alpha software and pretty much untested. It works for my own, single
 
 Stalled windows whose content i3 doesn't know cause interface bugs and could probably be handled better, but this needs more testing.
 
-Some kind of event is apparently being generated on the target workspace. https://pastebin.com/3ba7KLLP looks unremarkable, but it makes vim scroll?
-
-Sometimes (parts of) images end up on the wrong screen. This appears impossible to catch in Python and probably has something to do with X buffering the data XGetImage reads from.
-
 # Todo
 
 It's theoretically feasible to take the window information from i3's tree and allow for dragging of windows from one workspace to another or even from container to container. However, this would be massively complex (especially on the UI side) and it's not clear if it would be worth the effort.
-
-Handle fullscreen windows better - at the moment, the UI just kicks present windows out of fullscreen.
 
 And getting it into a publishable state, obviously.
 
