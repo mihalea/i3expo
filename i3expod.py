@@ -1,9 +1,8 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import ctypes
 import os
 import configparser
-import xdg
 import pygame
 import i3ipc
 import copy
@@ -45,9 +44,10 @@ def signal_show(signal, frame):
     if not global_updates_running:
         global_updates_running = True
     else:
+        source = i3.get_tree().find_focused().workspace().name
         i3.command('workspace i3expod-temporary-workspace')
         global_updates_running = False
-        ui_thread = Thread(target = show_ui)
+        ui_thread = Thread(target = show_ui, args=[source])
         ui_thread.daemon = True
         ui_thread.start()
 
@@ -186,6 +186,13 @@ def init_knowledge():
     for workspace in root.workspaces():
         update_workspace(workspace)
 
+workspace_changed = False
+
+def workspace_event(i3, e):
+    global workspace_changed
+    print(f'Workspace event at {time.time()}')
+    workspace_changed = True
+
 last_update = 0
 
 def update_state(i3, e):
@@ -225,8 +232,9 @@ def get_hovered_frame(mpos, frames):
             return frame
     return None
 
-def show_ui():
+def show_ui(source):
     global global_updates_running
+    global workspace_changed
 
     window_width = get_config('UI', 'window_width')
     window_height = get_config('UI', 'window_height')
@@ -409,7 +417,8 @@ def show_ui():
 
     running = True
     use_mouse = True
-    while running and not global_updates_running and pygame.display.get_init():
+    workspace_changed = False
+    while running and not global_updates_running and pygame.display.get_init() and not workspace_changed:
         jump = False
         kbdmove = (0, 0)
         for event in pygame.event.get():
@@ -471,6 +480,8 @@ def show_ui():
                 if defined_name:
                     i3.command('workspace ' + defined_name)
                     break
+        elif not running:
+            i3.command('workspace ' + source)
 
         for frame in frames.keys():
             if frames[frame]['active'] and not frame == active_frame:
@@ -493,6 +504,7 @@ if __name__ == '__main__':
     init_knowledge()
     update_state(i3, None)
 
+    i3.on('workspace', workspace_event)
     i3.on('window::new', update_state)
     i3.on('window::close', update_state)
     i3.on('window::move', update_state)
