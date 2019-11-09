@@ -1,0 +1,7 @@
+enum-compat==0.0.3
+i3ipc==2.1.1
+pillow==6.2.1
+pygame==1.9.6
+python-xlib==0.25
+pyxdg==0.26
+six==1.13.0
