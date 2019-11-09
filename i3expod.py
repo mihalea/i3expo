@@ -39,7 +39,7 @@ grab = ctypes.CDLL(screenshot_lib_path)
 # PARSE ARGUMENTS
 parser = argparse.ArgumentParser(description="Display an overview of all open workspaces")
 parser.add_argument("-v", "--verbose", help="Print more program data", action='store_true')
-parser.add_argument("-i", "--interval", help="Update interval in seconds", required=True)
+parser.add_argument("-i", "--interval", help="Update interval in seconds (default: 1s)")
 args = parser.parse_args()
 
 logLevel = logging.INFO
@@ -220,7 +220,7 @@ def update_state(i3, e):
 
     if not global_updates_running:
         return False
-    if time.time() - last_update < float(args.interval):
+    if time.time() - last_update < float(args.interval if args.interval else 1):
         return False
     last_update = time.time()
 
@@ -528,6 +528,7 @@ def show_ui(source):
 
             if jump:
                 if active_frame in global_knowledge.keys():
+                    logging.info(f'Switching to workspace {active_frame}')
                     i3.command('workspace ' + str(global_knowledge[active_frame]['name']))
                     break
                 if switch_to_empty_workspaces:
@@ -540,6 +541,7 @@ def show_ui(source):
                         i3.command('workspace ' + defined_name)
                         break
             elif not running:
+                logging.info(f'Exiting expo and switching to workspace {source}')
                 i3.command('workspace ' + source)
 
             for frame in frames.keys():
@@ -580,5 +582,7 @@ if __name__ == '__main__':
         while True:
             time.sleep(1)
             update_state(i3, None)
+    except SystemExit:
+        pass
     except:
         logging.exception("An unknown exception has ocurred")
