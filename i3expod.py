@@ -126,7 +126,6 @@ defaults = {
         ('UI', 'bgcolor'): (get_color, get_color(raw = 'gray20')),
         ('UI', 'workspaces'): (config.getint, None),
         ('UI', 'grid_x'): (config.getint, None),
-        ('UI', 'grid_y'): (config.getint, None),
         ('UI', 'padding_percent_x'): (config.getint, 5),
         ('UI', 'padding_percent_y'): (config.getint, 5),
         ('UI', 'spacing_percent_x'): (config.getint, 5),
@@ -257,93 +256,96 @@ def show_ui(source):
     global global_updates_running
     global workspace_changed
 
-    window_width = get_config('UI', 'window_width')
-    window_height = get_config('UI', 'window_height')
-    
-    workspaces = get_config('UI', 'workspaces')
-    max_grid_x = get_config('UI', 'grid_x')
-    max_grid_y = get_config('UI', 'grid_y')
-    
-    padding_x = get_config('UI', 'padding_percent_x')
-    padding_y = get_config('UI', 'padding_percent_y')
-    spacing_x = get_config('UI', 'spacing_percent_x')
-    spacing_y = get_config('UI', 'spacing_percent_y')
-    frame_width = get_config('UI', 'frame_width_px')
-    
-    frame_active_color = get_config('UI', 'frame_active_color')
-    frame_inactive_color = get_config('UI', 'frame_inactive_color')
-    frame_unknown_color = get_config('UI', 'frame_unknown_color')
-    frame_empty_color = get_config('UI', 'frame_empty_color')
-    frame_nonexistant_color = get_config('UI', 'frame_nonexistant_color')
-    
-    tile_active_color = get_config('UI', 'tile_active_color')
-    tile_inactive_color = get_config('UI', 'tile_inactive_color')
-    tile_unknown_color = get_config('UI', 'tile_unknown_color')
-    tile_empty_color = get_config('UI', 'tile_empty_color')
-    tile_nonexistant_color = get_config('UI', 'tile_nonexistant_color')
-    
-    names_show = get_config('UI', 'names_show')
-    names_font = get_config('UI', 'names_font')
-    names_fontsize = get_config('UI', 'names_fontsize')
-    names_color = get_config('UI', 'names_color')
-
-    thumb_stretch = get_config('UI', 'thumb_stretch')
-    highlight_percentage = get_config('UI', 'highlight_percentage')
-
-    switch_to_empty_workspaces = get_config('UI', 'switch_to_empty_workspaces')
-
-    screen = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
-    pygame.display.set_caption('i3expo')
-
-    # Calculate UI dimensions
-    total_x = screen.get_width()
-    total_y = screen.get_height()
-    logging.info(f'total_x={total_x} total_y=${total_y}')
-
-    n_workspaces = min(workspaces, len(global_knowledge) - 1)
-    grid_x = min(max_grid_x, n_workspaces)
-    grid_y = math.ceil(n_workspaces / max_grid_x)
-    logging.info(f'grid_x={grid_x} grid_y={grid_y}')
-
-    pad_x = round(total_x * padding_x / 100)
-    pad_y = round(total_y * padding_y / 100)
-    logging.info(f'pad_x={pad_x} pad_y={pad_y}')
-
-    space_x = round(total_x * spacing_x / 100)
-    space_y = round(total_y * spacing_y / 100)
-    logging.info(f'space_x={space_x} space_y={space_y}')
-
-    shot_outer_x = round((total_x - 2 * pad_x - space_x * (grid_x - 1)) / grid_x)
-    shot_outer_y = round((total_y - 2 * pad_y - space_y * (grid_y - 1)) / grid_y)
-    logging.info(f'shot_outer_x={shot_outer_x} shot_outer_y={shot_outer_y}')
-
-    offset_delta_x = shot_outer_x + space_x
-    offset_delta_y = shot_outer_y + space_y
-    logging.info(f'offset_delta_x={offset_delta_x} offset_delta_y={offset_delta_y}')
-
-    shot_inner_x = shot_outer_x - 2 * frame_width 
-    shot_inner_y = shot_outer_y - 2 * frame_width
-
-    pad_x = max(pad_x, (total_x - space_x * (grid_x - 1) - shot_outer_x * grid_x) / 2)
-    pad_y = max(pad_y, (total_y - space_y * (grid_y - 1) - shot_outer_y * grid_y) / 2)
-
-    screen.fill(get_config('UI', 'bgcolor'))
-    
-    missing = pygame.Surface((150,200), pygame.SRCALPHA, 32) 
-    missing = missing.convert_alpha()
-    qm = pygame.font.SysFont('sans-serif', 150).render('?', True, (150, 150, 150))
-    qm_size = qm.get_rect().size
-    origin_x = round((150 - qm_size[0])/2)
-    origin_y = round((200 - qm_size[1])/2)
-    missing.blit(qm, (origin_x, origin_y))
-
-    frames = {}
-
-    font = pygame.font.SysFont(names_font, names_fontsize)
-
-    print(f"Workspaces in memory: {n_workspaces}: {global_knowledge}")
-
     try:
+        window_width = get_config('UI', 'window_width')
+        window_height = get_config('UI', 'window_height')
+        
+        workspaces = get_config('UI', 'workspaces')
+        max_grid_x = get_config('UI', 'grid_x')
+        
+        padding_x = get_config('UI', 'padding_percent_x')
+        padding_y = get_config('UI', 'padding_percent_y')
+        spacing_x = get_config('UI', 'spacing_percent_x')
+        spacing_y = get_config('UI', 'spacing_percent_y')
+        frame_width = get_config('UI', 'frame_width_px')
+        
+        frame_active_color = get_config('UI', 'frame_active_color')
+        frame_inactive_color = get_config('UI', 'frame_inactive_color')
+        frame_unknown_color = get_config('UI', 'frame_unknown_color')
+        frame_empty_color = get_config('UI', 'frame_empty_color')
+        frame_nonexistant_color = get_config('UI', 'frame_nonexistant_color')
+        
+        tile_active_color = get_config('UI', 'tile_active_color')
+        tile_inactive_color = get_config('UI', 'tile_inactive_color')
+        tile_unknown_color = get_config('UI', 'tile_unknown_color')
+        tile_empty_color = get_config('UI', 'tile_empty_color')
+        tile_nonexistant_color = get_config('UI', 'tile_nonexistant_color')
+        
+        names_show = get_config('UI', 'names_show')
+        names_font = get_config('UI', 'names_font')
+        names_fontsize = get_config('UI', 'names_fontsize')
+        names_color = get_config('UI', 'names_color')
+
+        thumb_stretch = get_config('UI', 'thumb_stretch')
+        highlight_percentage = get_config('UI', 'highlight_percentage')
+
+        switch_to_empty_workspaces = get_config('UI', 'switch_to_empty_workspaces')
+
+        screen = pygame.display.set_mode((window_width, window_height), pygame.FULLSCREEN)
+        pygame.display.set_caption('i3expo')
+
+        # Calculate UI dimensions
+        total_x = screen.get_width()
+        total_y = screen.get_height()
+        logging.info(f'total_x={total_x} total_y={total_y}')
+
+        n_workspaces = min(workspaces, len(global_knowledge) - 1)
+        grid_x = min(max_grid_x, n_workspaces)
+        grid_y = math.ceil(n_workspaces / max_grid_x)
+        logging.info(f'grid_x={grid_x} grid_y={grid_y}')
+
+        pad_x = round(total_x * padding_x / 100)
+        pad_y = round(total_y * padding_y / 100)
+        logging.info(f'pad_x={pad_x} pad_y={pad_y}')
+
+        space_x = round(total_x * spacing_x / 100)
+        space_y = round(total_y * spacing_y / 100)
+        logging.info(f'space_x={space_x} space_y={space_y}')
+
+        shot_outer_x = round((total_x - 2 * pad_x - space_x * (grid_x - 1)) / grid_x)
+        shot_outer_y = round((total_y - 2 * pad_y - space_y * (grid_y - 1)) / grid_y)
+        logging.info(f'shot_outer_x={shot_outer_x} shot_outer_y={shot_outer_y}')
+
+        offset_delta_x = shot_outer_x + space_x
+        offset_delta_y = shot_outer_y + space_y
+        logging.info(f'offset_delta_x={offset_delta_x} offset_delta_y={offset_delta_y}')
+
+        shot_inner_x = shot_outer_x - 2 * frame_width 
+        shot_inner_y = shot_outer_y - 2 * frame_width
+
+        pad_x = max(pad_x, (total_x - space_x * (grid_x - 1) - shot_outer_x * grid_x) / 2)
+        pad_y = max(pad_y, (total_y - space_y * (grid_y - 1) - shot_outer_y * grid_y) / 2)
+
+        screen.fill(get_config('UI', 'bgcolor'))
+        
+        missing_x = total_x * 0.3
+        missing_y = total_y * 0.3
+        missing = pygame.Surface((missing_x, missing_y), pygame.SRCALPHA, 32) 
+        missing = missing.convert_alpha()
+        qm = pygame.font.SysFont('sans-serif', int(missing_x * 0.5)).render('?', True, (150, 150, 150)) # RGB
+        qm_size = qm.get_rect().size
+        origin_x = round((missing_x - qm_size[0])/2)
+        origin_y = round((missing_y - qm_size[1])/2)
+        missing.blit(qm, (origin_x, origin_y))
+
+        frames = {}
+
+        font = pygame.font.SysFont(names_font, names_fontsize)
+
+        print(f"Workspaces in memory: {n_workspaces}: {global_knowledge}")
+
+        active_frame = None
+
         for y in range(grid_y):
             for x in range(grid_x):
                 logging.debug(f"Drawing {x}x{y} workspace")
@@ -354,6 +356,7 @@ def show_ui(source):
                     tile_color = tile_active_color
                     frame_color = frame_active_color
                     image = global_knowledge[index]['screenshot']
+                    active_frame = index
                 elif index in global_knowledge.keys() and global_knowledge[index]['screenshot']:
                     tile_color = tile_inactive_color
                     frame_color = frame_inactive_color
@@ -438,7 +441,10 @@ def show_ui(source):
                 mouseon.blit(lightmask, (0, 0))
 
 
-                frames[index]['ul'] = (origin_x + frame_width + offset_x, origin_y + frame_width + offset_y)
+                frames[index]['ul'] = (
+                    origin_x + frame_width + offset_x,
+                    origin_y + frame_width + offset_y
+                    )
                 frames[index]['br'] = (
                     origin_x + frame_width + offset_x + result_x,
                     origin_y + frame_width + offset_y + result_y
@@ -513,7 +519,8 @@ def show_ui(source):
                 if kbdmove[0] != 0:
                     active_frame += kbdmove[0]
                 elif kbdmove[1] != 0:
-                    active_frame += kbdmove[1] * grid_x
+                    active_frame = min(active_frame + kbdmove[1] * grid_x, n_workspaces)
+
                 if active_frame > n_workspaces:
                     active_frame -= n_workspaces
                 elif active_frame <= 0:
