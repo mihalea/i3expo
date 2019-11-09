@@ -11,6 +11,7 @@ import sys
 import traceback
 import pprint
 import time
+import argparse
 from threading import Thread
 from PIL import Image, ImageDraw
 
@@ -28,6 +29,11 @@ i3 = i3ipc.Connection()
 screenshot_lib = 'prtscn.so'
 screenshot_lib_path = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + screenshot_lib
 grab = ctypes.CDLL(screenshot_lib_path)
+
+# PARSE ARGUMENTS
+parser = argparse.ArgumentParser(description="Display an overview of all open workspaces")
+parser.add_argument("-v", "--verbose", help="Print more program data", action='store_true')
+args = parser.parse_args()
 
 def signal_quit(signal, frame):
     print("Shutting down...")
@@ -499,7 +505,6 @@ def show_ui(source):
     global_updates_running = True
 
 if __name__ == '__main__':
-
     read_config()
     init_knowledge()
     update_state(i3, None)
