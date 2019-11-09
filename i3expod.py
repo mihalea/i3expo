@@ -3,6 +3,8 @@
 import ctypes
 import os
 import configparser
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 import i3ipc
 import copy
@@ -12,6 +14,8 @@ import traceback
 import pprint
 import time
 import argparse
+import math
+import logging
 from threading import Thread
 from PIL import Image, ImageDraw
 
@@ -30,13 +34,23 @@ screenshot_lib = 'prtscn.so'
 screenshot_lib_path = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + screenshot_lib
 grab = ctypes.CDLL(screenshot_lib_path)
 
+
+
 # PARSE ARGUMENTS
 parser = argparse.ArgumentParser(description="Display an overview of all open workspaces")
 parser.add_argument("-v", "--verbose", help="Print more program data", action='store_true')
+parser.add_argument("-i", "--interval", help="Update interval in seconds", required=True)
 args = parser.parse_args()
 
+logLevel = logging.INFO
+if args.verbose:
+    logLevel = logging.DEBUG
+    
+logging.basicConfig(format='[%(levelname)s] %(asctime)s: %(message)s', level=logLevel)
+
+
 def signal_quit(signal, frame):
-    print("Shutting down...")
+    logging.info("Shutting down...")
     pygame.display.quit()
     pygame.quit()
     i3.main_quit()
@@ -134,7 +148,7 @@ defaults = {
         ('UI', 'names_color'): (get_color, get_color(raw = 'white')),
         ('UI', 'thumb_stretch'): (config.getboolean, 'False'),
         ('UI', 'highlight_percentage'): (config.getint, 20),
-        ('UI', 'switch_to_empty_workspaces'): (config.getboolean, 'False')
+        ('UI', 'switch_to_empty_workspaces'): (config.getboolean, 'False'),
 }
 
 def read_config():
@@ -142,7 +156,7 @@ def read_config():
     for option in defaults.keys():
         if not isset(option):
             if defaults[option][1] == None:
-                print("Error: Mandatory option " + str(option) + " not set!")
+                logging.error("Error: Mandatory option " + str(option) + " not set!")
                 sys.exit(1)
             config.set(*option, value=defaults[option][1])
 
@@ -176,6 +190,7 @@ def grab_screen():
     return pygame.image.fromstring(pil.tobytes(), pil.size, pil.mode)
 
 def update_workspace(workspace):
+    logging.debug(f"Update workspace {workspace.num}")
     if workspace.num not in global_knowledge.keys():
         global_knowledge[workspace.num] = {
                 'name': None,
@@ -196,7 +211,7 @@ workspace_changed = False
 
 def workspace_event(i3, e):
     global workspace_changed
-    print(f'Workspace event at {time.time()}')
+    logging.debug(f'Workspace event at {time.time()}')
     workspace_changed = True
 
 last_update = 0
@@ -206,7 +221,7 @@ def update_state(i3, e):
 
     if not global_updates_running:
         return False
-    if time.time() - last_update < 0.1:
+    if time.time() - last_update < float(args.interval):
         return False
     last_update = time.time()
 
@@ -246,8 +261,8 @@ def show_ui(source):
     window_height = get_config('UI', 'window_height')
     
     workspaces = get_config('UI', 'workspaces')
-    grid_x = get_config('UI', 'grid_x')
-    grid_y = get_config('UI', 'grid_y')
+    max_grid_x = get_config('UI', 'grid_x')
+    max_grid_y = get_config('UI', 'grid_y')
     
     padding_x = get_config('UI', 'padding_percent_x')
     padding_y = get_config('UI', 'padding_percent_y')
@@ -280,23 +295,37 @@ def show_ui(source):
     screen = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption('i3expo')
 
+    # Calculate UI dimensions
     total_x = screen.get_width()
     total_y = screen.get_height()
+    logging.info(f'total_x={total_x} total_y=${total_y}')
+
+    n_workspaces = min(workspaces, len(global_knowledge) - 1)
+    grid_x = min(max_grid_x, n_workspaces)
+    grid_y = math.ceil(n_workspaces / max_grid_x)
+    logging.info(f'grid_x={grid_x} grid_y={grid_y}')
 
     pad_x = round(total_x * padding_x / 100)
     pad_y = round(total_y * padding_y / 100)
+    logging.info(f'pad_x={pad_x} pad_y={pad_y}')
 
     space_x = round(total_x * spacing_x / 100)
     space_y = round(total_y * spacing_y / 100)
+    logging.info(f'space_x={space_x} space_y={space_y}')
 
     shot_outer_x = round((total_x - 2 * pad_x - space_x * (grid_x - 1)) / grid_x)
     shot_outer_y = round((total_y - 2 * pad_y - space_y * (grid_y - 1)) / grid_y)
+    logging.info(f'shot_outer_x={shot_outer_x} shot_outer_y={shot_outer_y}')
+
+    offset_delta_x = shot_outer_x + space_x
+    offset_delta_y = shot_outer_y + space_y
+    logging.info(f'offset_delta_x={offset_delta_x} offset_delta_y={offset_delta_y}')
 
     shot_inner_x = shot_outer_x - 2 * frame_width 
     shot_inner_y = shot_outer_y - 2 * frame_width
 
-    offset_delta_x = shot_outer_x + space_x
-    offset_delta_y = shot_outer_y + space_y
+    pad_x = max(pad_x, (total_x - space_x * (grid_x - 1) - shot_outer_x * grid_x) / 2)
+    pad_y = max(pad_y, (total_y - space_y * (grid_y - 1) - shot_outer_y * grid_y) / 2)
 
     screen.fill(get_config('UI', 'bgcolor'))
     
@@ -312,63 +341,53 @@ def show_ui(source):
 
     font = pygame.font.SysFont(names_font, names_fontsize)
 
-    for y in range(grid_y):
-        for x in range(grid_x):
+    print(f"Workspaces in memory: {n_workspaces}: {global_knowledge}")
 
-            index = y * grid_x + x + 1
+    try:
+        for y in range(grid_y):
+            for x in range(grid_x):
+                logging.debug(f"Drawing {x}x{y} workspace")
 
-            frames[index] = {
-                    'active': False,
-                    'mouseoff': None,
-                    'mouseon': None,
-                    'ul': (None, None),
-                    'br': (None, None)
-            }
+                index = y * grid_x + x + 1
 
-            if global_knowledge['active'] == index:
-                tile_color = tile_active_color
-                frame_color = frame_active_color
-                image = global_knowledge[index]['screenshot']
-            elif index in global_knowledge.keys() and global_knowledge[index]['screenshot']:
-                tile_color = tile_inactive_color
-                frame_color = frame_inactive_color
-                image = global_knowledge[index]['screenshot']
-            elif index in global_knowledge.keys():
-                tile_color = tile_unknown_color
-                frame_color = frame_unknown_color
-                image = missing
-            elif index <= workspaces:
-                tile_color = tile_empty_color
-                frame_color = frame_empty_color
-                image = None
-            else:
-                tile_color = tile_nonexistant_color
-                frame_color = frame_nonexistant_color
-                image = None
+                if global_knowledge['active'] == index:
+                    tile_color = tile_active_color
+                    frame_color = frame_active_color
+                    image = global_knowledge[index]['screenshot']
+                elif index in global_knowledge.keys() and global_knowledge[index]['screenshot']:
+                    tile_color = tile_inactive_color
+                    frame_color = frame_inactive_color
+                    image = global_knowledge[index]['screenshot']
+                elif index in global_knowledge.keys():
+                    tile_color = tile_unknown_color
+                    frame_color = frame_unknown_color
+                    image = missing
+                elif index <= n_workspaces:
+                    tile_color = tile_empty_color
+                    frame_color = frame_empty_color
+                    image = None
+                else:
+                    tile_color = tile_nonexistant_color
+                    frame_color = frame_nonexistant_color
+                    image = None
 
-            origin_x = pad_x + offset_delta_x * x
-            origin_y = pad_y + offset_delta_y * y
+                if not image:
+                    continue
 
-            frames[index]['ul'] = (origin_x, origin_y)
-            frames[index]['br'] = (origin_x + shot_outer_x, origin_y + shot_outer_y)
+                frames[index] = {
+                        'active': False,
+                        'mouseoff': None,
+                        'mouseon': None,
+                        'ul': (None, None),
+                        'br': (None, None)
+                }
 
-            screen.fill(frame_color,
-                    (
-                        origin_x,
-                        origin_y,
-                        shot_outer_x,
-                        shot_outer_y,
-                    ))
+                origin_x = pad_x + offset_delta_x * x
+                origin_y = pad_y + offset_delta_y * y
 
-            screen.fill(tile_color,
-                    (
-                        origin_x + frame_width,
-                        origin_y + frame_width,
-                        shot_inner_x,
-                        shot_inner_y,
-                    ))
-
-            if image:
+                result_x = 0
+                result_y = 0
+                
                 if thumb_stretch:
                     image = pygame.transform.smoothscale(image, (shot_inner_x, shot_inner_y))
                     offset_x = 0
@@ -390,137 +409,169 @@ def show_ui(source):
                         offset_x = round((shot_inner_x - result_x) / 2)
                         offset_y = 0
                     image = pygame.transform.smoothscale(image, (result_x, result_y))
+
+                screen.fill(frame_color,
+                    (
+                        origin_x + offset_x,
+                        origin_y + offset_y,
+                        result_x + frame_width * 2,
+                        result_y + frame_width * 2,
+                    ))
+
+                screen.fill(tile_color,
+                    (
+                        origin_x + frame_width + offset_x,
+                        origin_y + frame_width + offset_y,
+                        result_x,
+                        result_y,
+                    ))
+
                 screen.blit(image, (origin_x + frame_width + offset_x, origin_y + frame_width + offset_y))
 
-            mouseoff = screen.subsurface((origin_x, origin_y, shot_outer_x, shot_outer_y)).copy()
-            lightmask = pygame.Surface((shot_outer_x, shot_outer_y), pygame.SRCALPHA, 32)
-            lightmask.convert_alpha()
-            lightmask.fill((255,255,255,255 * highlight_percentage / 100))
-            mouseon = mouseoff.copy()
-            mouseon.blit(lightmask, (0, 0))
+                mouseoff = screen.subsurface(
+                    (origin_x + frame_width + offset_x, origin_y + frame_width + offset_y, result_x, result_y)
+                    ).copy()
+                lightmask = pygame.Surface((result_x, result_y), pygame.SRCALPHA, 32)
+                lightmask.convert_alpha()
+                lightmask.fill((255,255,255,255 * highlight_percentage / 100))
+                mouseon = mouseoff.copy()
+                mouseon.blit(lightmask, (0, 0))
 
-            frames[index]['mouseon'] = mouseon.copy()
-            frames[index]['mouseoff'] = mouseoff.copy()
 
-            defined_name = False
-            try:
-                defined_name = config.get('Workspaces', 'workspace_' + str(index))
-            except:
-                pass
+                frames[index]['ul'] = (origin_x + frame_width + offset_x, origin_y + frame_width + offset_y)
+                frames[index]['br'] = (
+                    origin_x + frame_width + offset_x + result_x,
+                    origin_y + frame_width + offset_y + result_y
+                    )
 
-            if names_show and (index in global_knowledge.keys() or defined_name):
-                if not defined_name:
-                    name = global_knowledge[index]['name']
-                else:
-                    name = defined_name
-                name = font.render(name, True, names_color)
-                name_width = name.get_rect().size[0]
-                name_x = origin_x + round((shot_outer_x - name_width) / 2)
-                name_y = origin_y + shot_outer_y + round(shot_outer_y * 0.02)
-                screen.blit(name, (name_x, name_y))
+                frames[index]['mouseon'] = mouseon.copy()
+                frames[index]['mouseoff'] = mouseoff.copy()
 
-    pygame.display.flip()
-
-    running = True
-    use_mouse = True
-    workspace_changed = False
-    while running and not global_updates_running and pygame.display.get_init() and not workspace_changed:
-        jump = False
-        kbdmove = (0, 0)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEMOTION:
-                use_mouse = True
-            elif event.type == pygame.KEYDOWN:
-                use_mouse = False
-
-                if event.key == pygame.K_UP or event.key == pygame.K_k:
-                    kbdmove = (0, -1)
-                if event.key == pygame.K_DOWN or event.key == pygame.K_j:
-                    kbdmove = (0, 1)
-                if event.key == pygame.K_LEFT or event.key == pygame.K_h:
-                    kbdmove = (-1, 0)
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_l:
-                    kbdmove = (1, 0)
-                if event.key == pygame.K_RETURN:
-                    jump = True
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-                pygame.event.clear()
-                break
-
-            elif event.type == pygame.MOUSEBUTTONUP:
-                use_mouse = True
-                if event.button == 1:
-                    jump = True
-                pygame.event.clear()
-                break
-
-        if use_mouse:
-            mpos = pygame.mouse.get_pos()
-            active_frame = get_hovered_frame(mpos, frames)
-        elif kbdmove != (0, 0):
-            if active_frame == None:
-                active_frame = 1
-            if kbdmove[0] != 0:
-                active_frame += kbdmove[0]
-            elif kbdmove[1] != 0:
-                active_frame += kbdmove[1] * grid_x
-            if active_frame > workspaces:
-                active_frame -= workspaces
-            elif active_frame < 0:
-                active_frame += workspaces
-            print(active_frame)
-
-        if jump:
-            if active_frame in global_knowledge.keys():
-                i3.command('workspace ' + str(global_knowledge[active_frame]['name']))
-                break
-            if switch_to_empty_workspaces:
                 defined_name = False
                 try:
-                    defined_name = config.get('Workspaces', 'workspace_' + str(active_frame))
+                    defined_name = config.get('Workspaces', 'workspace_' + str(index))
                 except:
                     pass
-                if defined_name:
-                    i3.command('workspace ' + defined_name)
+
+                if names_show and (index in global_knowledge.keys() or defined_name):
+                    if not defined_name:
+                        name = global_knowledge[index]['name']
+                    else:
+                        name = defined_name
+                        
+                    name = font.render(name, True, names_color)
+                    name_width = name.get_rect().size[0]
+                    name_x = origin_x + frame_width + offset_x + round((result_x - name_width) / 2)
+                    name_y = origin_y + frame_width + offset_y + result_y + round(result_y * 0.05)
+                    screen.blit(name, (name_x, name_y))
+
+        pygame.display.flip()
+
+        running = True
+        use_mouse = True
+        workspace_changed = False
+        while running and not global_updates_running and pygame.display.get_init() and not workspace_changed:
+            jump = False
+            kbdmove = (0, 0)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.MOUSEMOTION:
+                    use_mouse = True
+                elif event.type == pygame.KEYDOWN:
+                    use_mouse = False
+
+                    if event.key == pygame.K_UP or event.key == pygame.K_k:
+                        kbdmove = (0, -1)
+                    if event.key == pygame.K_DOWN or event.key == pygame.K_j:
+                        kbdmove = (0, 1)
+                    if event.key == pygame.K_LEFT or event.key == pygame.K_h:
+                        kbdmove = (-1, 0)
+                    if event.key == pygame.K_RIGHT or event.key == pygame.K_l:
+                        kbdmove = (1, 0)
+                    if event.key == pygame.K_RETURN:
+                        jump = True
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
+                    pygame.event.clear()
                     break
-        elif not running:
-            i3.command('workspace ' + source)
 
-        for frame in frames.keys():
-            if frames[frame]['active'] and not frame == active_frame:
-                screen.blit(frames[frame]['mouseoff'], frames[frame]['ul'])
-                frames[frame]['active'] = False
-        if active_frame and not frames[active_frame]['active']:
-            screen.blit(frames[active_frame]['mouseon'], frames[active_frame]['ul'])
-            frames[active_frame]['active'] = True
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    use_mouse = True
+                    if event.button == 1:
+                        jump = True
+                    pygame.event.clear()
+                    break
 
-        pygame.display.update()
-        pygame.time.wait(25)
+            if use_mouse:
+                mpos = pygame.mouse.get_pos()
+                active_frame = get_hovered_frame(mpos, frames)
+            elif kbdmove != (0, 0):
+                if active_frame == None:
+                    active_frame = 1
+                if kbdmove[0] != 0:
+                    active_frame += kbdmove[0]
+                elif kbdmove[1] != 0:
+                    active_frame += kbdmove[1] * grid_x
+                if active_frame > n_workspaces:
+                    active_frame -= n_workspaces
+                elif active_frame <= 0:
+                    active_frame += n_workspaces
 
-    pygame.display.quit()
-    pygame.display.init()
-    global_updates_running = True
+            if jump:
+                if active_frame in global_knowledge.keys():
+                    i3.command('workspace ' + str(global_knowledge[active_frame]['name']))
+                    break
+                if switch_to_empty_workspaces:
+                    defined_name = False
+                    try:
+                        defined_name = config.get('Workspaces', 'workspace_' + str(active_frame))
+                    except:
+                        pass
+                    if defined_name:
+                        i3.command('workspace ' + defined_name)
+                        break
+            elif not running:
+                i3.command('workspace ' + source)
+
+            for frame in frames.keys():
+                if frames[frame]['active'] and not frame == active_frame:
+                    screen.blit(frames[frame]['mouseoff'], frames[frame]['ul'])
+                    frames[frame]['active'] = False
+            if active_frame and not frames[active_frame]['active']:
+                screen.blit(frames[active_frame]['mouseon'], frames[active_frame]['ul'])
+                frames[active_frame]['active'] = True
+
+            pygame.display.update()
+            pygame.time.wait(25)
+    except Exception as err:
+        logging.exception("Failed to show UI")
+    finally:
+        pygame.display.quit()
+        # pygame.display.init()
+        global_updates_running = True
 
 if __name__ == '__main__':
-    read_config()
-    init_knowledge()
-    update_state(i3, None)
-
-    i3.on('workspace', workspace_event)
-    i3.on('window::new', update_state)
-    i3.on('window::close', update_state)
-    i3.on('window::move', update_state)
-    i3.on('window::floating', update_state)
-    i3.on('window::fullscreen_mode', update_state)
-    #i3.on('workspace', update_state)
-
-    i3_thread = Thread(target = i3.main)
-    i3_thread.daemon = True
-    i3_thread.start()
-
-    while True:
-        time.sleep(1)
+    try:
+        read_config()
+        init_knowledge()
         update_state(i3, None)
+
+        i3.on('workspace', workspace_event)
+        i3.on('window::new', update_state)
+        i3.on('window::close', update_state)
+        i3.on('window::move', update_state)
+        i3.on('window::floating', update_state)
+        i3.on('window::fullscreen_mode', update_state)
+        #i3.on('workspace', update_state)
+
+        i3_thread = Thread(target = i3.main)
+        i3_thread.daemon = True
+        i3_thread.start()
+
+        while True:
+            time.sleep(1)
+            update_state(i3, None)
+    except:
+        logging.exception("An unknown exception has ocurred")
