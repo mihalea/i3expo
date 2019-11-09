@@ -7,7 +7,7 @@ with open('README.md') as f:
     long_description = f.read()
 
 setup(name='i3expo',
-      version='0.3.1',
+      version='0.1',
       description='Provide a workspace overview for i3wm',
       long_description=long_description,
       url='https://github.com/mihalea/i3expo',
@@ -16,9 +16,9 @@ setup(name='i3expo',
       license='GPL',
       zip_safe=False,
       install_requires=requirements,
-      py_modules=['i3expo'],
+      py_modules=['i3expod'],
       entry_points={
           'console_scripts': [
-              'i3expo=i3expo:main'
+              'i3expo=i3expod:main'
           ]
       })

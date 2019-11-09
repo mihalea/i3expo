@@ -1,3 +1,6 @@
 gitfiles
 .vscode
 *.so
+build
+dist 
+*.egg-info

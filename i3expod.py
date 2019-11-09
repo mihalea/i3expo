@@ -30,9 +30,9 @@ pygame.display.init()
 pygame.font.init()
 i3 = i3ipc.Connection()
 
-screenshot_lib = 'prtscn.so'
-screenshot_lib_path = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + screenshot_lib
-grab = ctypes.CDLL(screenshot_lib_path)
+screenshot_lib = '/usr/share/i3expo/prtscn.so'
+# screenshot_lib_path = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + screenshot_lib
+grab = ctypes.CDLL(screenshot_lib)
 
 
 
@@ -558,10 +558,10 @@ def show_ui(source):
         logging.exception("Failed to show UI")
     finally:
         pygame.display.quit()
-        # pygame.display.init()
+        pygame.display.init()
         global_updates_running = True
 
-if __name__ == '__main__':
+def main():
     try:
         read_config()
         init_knowledge()
@@ -586,3 +586,7 @@ if __name__ == '__main__':
         pass
     except:
         logging.exception("An unknown exception has ocurred")
+
+
+if __name__ == '__main__':
+    main()
