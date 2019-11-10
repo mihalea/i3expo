@@ -11,7 +11,8 @@ builddepends=('gcc python-setuptools')
 license=('MIT')
 arch=('any')
 provides=('i3expo')
-source=("git+https://github.com/mihalea/i3expo.git")
+#source=("git+https://github.com/mihalea/i3expo.git")
+source=("git+file:///home/mircea/code/i3expo")
 md5sums=('SKIP')
 
 build() {

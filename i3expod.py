@@ -38,11 +38,15 @@ grab = ctypes.CDLL(screenshot_lib)
 timer = timing.get_timing_group(__name__)
 
 # PARSE ARGUMENTS
+t_args = timer.start("args")
 parser = argparse.ArgumentParser(description="Display an overview of all open workspaces")
 parser.add_argument("-v", "--verbose", help="Print more program data", action='store_true')
 parser.add_argument("-i", "--interval", help="Update interval in seconds (default: 1s)")
 parser.add_argument("-d", "--dedicated", help="Launch on a dedicated workspace", action="store_true")
+parser.add_argument("-t", "--timings", help="Show debug timing data", action="store_true")
+
 args = parser.parse_args()
+t_args.stop()
 
 logLevel = logging.INFO
 if args.verbose:
@@ -59,9 +63,11 @@ def signal_quit(signal, frame):
     sys.exit(0)
 
 def signal_reload(signal, frame):
+    logging.info("Realoading config")
     read_config()
 
 def signal_show(signal, frame):
+    logging.info("Showing UI")
     global global_updates_running
     if not global_updates_running:
         global_updates_running = True
@@ -313,28 +319,28 @@ def show_ui(source):
         # Calculate UI dimensions
         total_x = screen.get_width()
         total_y = screen.get_height()
-        logging.info(f'total_x={total_x} total_y={total_y}')
+        logging.debug(f'total_x={total_x} total_y={total_y}')
 
         n_workspaces = min(workspaces, len(global_knowledge) - 1)
         grid_x = min(max_grid_x, n_workspaces)
         grid_y = math.ceil(n_workspaces / max_grid_x)
-        logging.info(f'grid_x={grid_x} grid_y={grid_y}')
+        logging.debug(f'grid_x={grid_x} grid_y={grid_y}')
 
         pad_x = round(total_x * padding_x / 100)
         pad_y = round(total_y * padding_y / 100)
-        logging.info(f'pad_x={pad_x} pad_y={pad_y}')
+        logging.debug(f'pad_x={pad_x} pad_y={pad_y}')
 
         space_x = round(total_x * spacing_x / 100)
         space_y = round(total_y * spacing_y / 100)
-        logging.info(f'space_x={space_x} space_y={space_y}')
+        logging.debug(f'space_x={space_x} space_y={space_y}')
 
         shot_outer_x = round((total_x - 2 * pad_x - space_x * (grid_x - 1)) / grid_x)
         shot_outer_y = round((total_y - 2 * pad_y - space_y * (grid_y - 1)) / grid_y)
-        logging.info(f'shot_outer_x={shot_outer_x} shot_outer_y={shot_outer_y}')
+        logging.debug(f'shot_outer_x={shot_outer_x} shot_outer_y={shot_outer_y}')
 
         offset_delta_x = shot_outer_x + space_x
         offset_delta_y = shot_outer_y + space_y
-        logging.info(f'offset_delta_x={offset_delta_x} offset_delta_y={offset_delta_y}')
+        logging.debug(f'offset_delta_x={offset_delta_x} offset_delta_y={offset_delta_y}')
 
         shot_inner_x = shot_outer_x - 2 * frame_width 
         shot_inner_y = shot_outer_y - 2 * frame_width
@@ -366,7 +372,9 @@ def show_ui(source):
 
         t_init_frames = timer.start("show_ui_init_frame")
 
-        print(f"Workspaces in memory: {n_workspaces}: {global_knowledge}")
+        logging.info(f"Workspaces in memory: {n_workspaces}")
+        logging.debug(f"Workspace data: {global_knowledge}")
+
 
         active_frame = None
         workspace_ids = [w for w in global_knowledge.keys() if w != 'active']
@@ -399,7 +407,7 @@ def show_ui(source):
                 image = None
 
             if not image:
-                logging.info(f"Skipping workspace {index}")
+                logging.debug(f"Skipping workspace {index}")
                 continue
 
             logging.debug(f"Preparing workspace {index} at {y}x{x}")
@@ -549,7 +557,7 @@ def show_ui(source):
                     if event.key == pygame.K_RETURN:
                         jump = True
                     if event.key == pygame.K_ESCAPE:
-                        logging.info("ESCAPE key pressed")
+                        logging.debug("ESCAPE key pressed")
                         running = False
                     pygame.event.clear()
                     break
@@ -618,9 +626,17 @@ def print_timing(name):
                 f"{data['mean'] * 1000:.4f}ms " +
                 f"({data['min'] * 1000:.4f}/{data['max'] * 1000:.4f}/{data['stddev'] * 1000:.4f})")    
 
+def save_pid():
+    pid = os.getpid()
+    uid = os.getuid()
+    logging.info(f"Registering process PID={pid}")
+    with open(f"/var/run/user/{uid}/i3expo.pid", "w") as f:
+        f.write(f"{pid}")
 
 def main():
     try:
+        save_pid()
+
         read_config()
         init_knowledge()
         update_state(i3, None)
@@ -633,6 +649,8 @@ def main():
         i3.on('window::fullscreen_mode', update_state)
         #i3.on('workspace', update_state)
 
+        logging.info("Starting main threads")
+
         i3_thread = Thread(target = i3.main)
         i3_thread.daemon = True
         i3_thread.start()
@@ -644,9 +662,10 @@ def main():
         pass
     except:
         logging.exception("An unknown exception has ocurred")
-    finally:
-        for t in timer.summary:
-            print_timing(t)
+    finally:   
+        if args.timings:
+            for t in timer.summary:
+                print_timing(t)
 
 
 if __name__ == '__main__':

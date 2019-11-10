@@ -12,11 +12,13 @@ setup(name='i3expo',
       author_email='mircea@mihalea.ro, me@joshwalls.co.uk',
       license='GPL',
       zip_safe=False,
-      #install_requires=requirements,
-      #setup_requires=requirements,
-      py_modules=['i3expod'],
+      # install_requires=requirements,
+      # setup_requires=requirements,
+      include_package_data=True,
+      py_modules=['i3expod', 'i3expo'],
       entry_points={
           'console_scripts': [
-              'i3expo=i3expod:main'
+              'i3expod=i3expod:main',
+              'i3expo=i3expo:main'
           ]
       })
