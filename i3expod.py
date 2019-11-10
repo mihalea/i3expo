@@ -575,7 +575,7 @@ def show_ui(source):
             if jump:
                 if active_frame in global_knowledge.keys():
                     logging.info(f'Switching to workspace {active_frame}')
-                    i3.command('workspace ' + str(global_knowledge[active_frame]['name']))
+                    i3.command(f'workspace number {active_frame}')
                     break
 
             elif not running and args.dedicated:
@@ -605,7 +605,9 @@ def show_ui(source):
 def print_timing(name):
     if name in timer.summary:
         data = timer.summary[name]
-        logging.info(f"{name} (x{data['samples']}):\t {data['mean'] * 1000:3.4f}ms")    
+        logging.info(f"{name} (x{data['samples']}): " +
+            f"{data['mean'] * 1000:.4f}ms " +
+            f"({data['min'] * 1000:.4f}/{data['max'] * 1000:.4f}/{data['stddev'] * 1000:.4f})")    
 
 if __name__ == '__main__':
     try:
