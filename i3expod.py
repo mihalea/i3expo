@@ -568,7 +568,7 @@ def show_ui(source):
                 if kbdmove[0] != 0:
                     selected_id += kbdmove[0]
                 elif kbdmove[1] != 0:
-                    selected_id = min(selected_id + kbdmove[1] * grid_x, n_workspaces - 1)
+                    selected_id += kbdmove[1] * grid_x
 
                 if selected_id >= n_workspaces:
                     selected_id -= n_workspaces
@@ -599,7 +599,7 @@ def show_ui(source):
             pygame.time.wait(25)
 
             t_run.stop()
-    except Exception as err:
+    except Exception:
         logging.exception("Failed to show UI")
     finally:
         logging.info("Closing UI")
