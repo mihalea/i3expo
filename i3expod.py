@@ -476,12 +476,25 @@ def show_ui(source):
         running = True
         use_mouse = True
         workspace_changed = False
-        while running and not global_updates_running and pygame.display.get_init() and not workspace_changed:
+        while running:
+            if global_updates_running:
+                logging.info("Global updates is running")
+                break
+
+            if not pygame.display.get_init():
+                logging.info("Display is not initialised")
+                break
+
+            if workspace_changed:
+                logging.info("Workspace changed")
+                break
+
             jump = False
             kbdmove = (0, 0)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    logging.info("Received pygame.QUIT")
                     running = False
                 elif event.type == pygame.MOUSEMOTION:
                     use_mouse = True
@@ -499,6 +512,7 @@ def show_ui(source):
                     if event.key == pygame.K_RETURN:
                         jump = True
                     if event.key == pygame.K_ESCAPE:
+                        logging.info("ESCAPE key pressed")
                         running = False
                     pygame.event.clear()
                     break
@@ -531,15 +545,7 @@ def show_ui(source):
                     logging.info(f'Switching to workspace {active_frame}')
                     i3.command('workspace ' + str(global_knowledge[active_frame]['name']))
                     break
-                if switch_to_empty_workspaces:
-                    defined_name = False
-                    try:
-                        defined_name = config.get('Workspaces', 'workspace_' + str(active_frame))
-                    except:
-                        pass
-                    if defined_name:
-                        i3.command('workspace ' + defined_name)
-                        break
+
             elif not running:
                 logging.info(f'Exiting expo and switching to workspace {source}')
                 i3.command('workspace ' + source)
@@ -557,6 +563,7 @@ def show_ui(source):
     except Exception as err:
         logging.exception("Failed to show UI")
     finally:
+        logging.info("Closing UI")
         pygame.display.quit()
         # pygame.display.init()
         global_updates_running = True
@@ -567,7 +574,7 @@ if __name__ == '__main__':
         init_knowledge()
         update_state(i3, None)
 
-        i3.on('workspace', workspace_event)
+        # i3.on('workspace', workspace_event)
         i3.on('window::new', update_state)
         i3.on('window::close', update_state)
         i3.on('window::move', update_state)
