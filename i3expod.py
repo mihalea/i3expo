@@ -40,6 +40,7 @@ grab = ctypes.CDLL(screenshot_lib_path)
 parser = argparse.ArgumentParser(description="Display an overview of all open workspaces")
 parser.add_argument("-v", "--verbose", help="Print more program data", action='store_true')
 parser.add_argument("-i", "--interval", help="Update interval in seconds (default: 1s)")
+parser.add_argument("-d", "--dedicated", help="Launch on a dedicated workspace", action="store_true")
 args = parser.parse_args()
 
 logLevel = logging.INFO
@@ -65,7 +66,9 @@ def signal_show(signal, frame):
         global_updates_running = True
     else:
         source = i3.get_tree().find_focused().workspace().name
-        i3.command('workspace i3expod-temporary-workspace')
+        if args.dedicated:
+            i3.command('workspace i3expod-temporary-workspace')
+        
         global_updates_running = False
         ui_thread = Thread(target = show_ui, args=[source])
         ui_thread.daemon = True
@@ -546,7 +549,7 @@ def show_ui(source):
                     i3.command('workspace ' + str(global_knowledge[active_frame]['name']))
                     break
 
-            elif not running:
+            elif not running and args.dedicated:
                 logging.info(f'Exiting expo and switching to workspace {source}')
                 i3.command('workspace ' + source)
 
