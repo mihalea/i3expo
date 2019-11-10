@@ -15,8 +15,8 @@ setup(name='i3expo',
       author_email='mircea@mihalea.ro, me@joshwalls.co.uk',
       license='GPL',
       zip_safe=False,
-      install_requires=requirements,
-      setup_requires=requirements,
+      #install_requires=requirements,
+      #setup_requires=requirements,
       py_modules=['i3expod'],
       entry_points={
           'console_scripts': [
