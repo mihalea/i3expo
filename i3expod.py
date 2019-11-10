@@ -369,131 +369,134 @@ def show_ui(source):
         print(f"Workspaces in memory: {n_workspaces}: {global_knowledge}")
 
         active_frame = None
+        workspace_ids = [w for w in global_knowledge.keys() if w != 'active']
 
-        for y in range(grid_y):
-            for x in range(grid_x):
-                logging.debug(f"Drawing {x}x{y} workspace")
+        for i in range(len(workspace_ids)):
+            x = math.floor(i % grid_x)
+            y = math.floor(i / grid_x)
+            index = workspace_ids[i]
 
-                index = y * grid_x + x + 1
+            if global_knowledge['active'] == index:
+                tile_color = tile_active_color
+                frame_color = frame_active_color
+                image = global_knowledge[index]['screenshot']
+                active_frame = index
+            elif index in global_knowledge.keys() and global_knowledge[index]['screenshot']:
+                tile_color = tile_inactive_color
+                frame_color = frame_inactive_color
+                image = global_knowledge[index]['screenshot']
+            elif index in global_knowledge.keys():
+                tile_color = tile_unknown_color
+                frame_color = frame_unknown_color
+                image = missing
+            elif index <= n_workspaces:
+                tile_color = tile_empty_color
+                frame_color = frame_empty_color
+                image = None
+            else:
+                tile_color = tile_nonexistant_color
+                frame_color = frame_nonexistant_color
+                image = None
 
-                if global_knowledge['active'] == index:
-                    tile_color = tile_active_color
-                    frame_color = frame_active_color
-                    image = global_knowledge[index]['screenshot']
-                    active_frame = index
-                elif index in global_knowledge.keys() and global_knowledge[index]['screenshot']:
-                    tile_color = tile_inactive_color
-                    frame_color = frame_inactive_color
-                    image = global_knowledge[index]['screenshot']
-                elif index in global_knowledge.keys():
-                    tile_color = tile_unknown_color
-                    frame_color = frame_unknown_color
-                    image = missing
-                elif index <= n_workspaces:
-                    tile_color = tile_empty_color
-                    frame_color = frame_empty_color
-                    image = None
-                else:
-                    tile_color = tile_nonexistant_color
-                    frame_color = frame_nonexistant_color
-                    image = None
+            if not image:
+                logging.info(f"Skipping workspace {index}")
+                continue
 
-                if not image:
-                    continue
+            logging.debug(f"Preparing workspace {index} at {y}x{x}")
 
-                frames[index] = {
-                        'active': False,
-                        'mouseoff': None,
-                        'mouseon': None,
-                        'ul': (None, None),
-                        'br': (None, None)
-                }
+            frames[index] = {
+                    'active': False,
+                    'mouseoff': None,
+                    'mouseon': None,
+                    'ul': (None, None),
+                    'br': (None, None)
+            }
 
-                origin_x = pad_x + offset_delta_x * x
-                origin_y = pad_y + offset_delta_y * y
+            origin_x = pad_x + offset_delta_x * x
+            origin_y = pad_y + offset_delta_y * y
 
-                result_x = 0
-                result_y = 0
-                
-                if thumb_stretch:
-                    image = pygame.transform.smoothscale(image, (shot_inner_x, shot_inner_y))
+            result_x = 0
+            result_y = 0
+            
+            if thumb_stretch:
+                image = pygame.transform.smoothscale(image, (shot_inner_x, shot_inner_y))
+                offset_x = 0
+                offset_y = 0
+            else:
+                image_size = image.get_rect().size
+                image_x = image_size[0]
+                image_y = image_size[1]
+                ratio_x = shot_inner_x / image_x
+                ratio_y = shot_inner_y / image_y
+                if ratio_x < ratio_y:
+                    result_x = shot_inner_x
+                    result_y = round(ratio_x * image_y)
                     offset_x = 0
-                    offset_y = 0
+                    offset_y = round((shot_inner_y - result_y) / 2)
                 else:
-                    image_size = image.get_rect().size
-                    image_x = image_size[0]
-                    image_y = image_size[1]
-                    ratio_x = shot_inner_x / image_x
-                    ratio_y = shot_inner_y / image_y
-                    if ratio_x < ratio_y:
-                        result_x = shot_inner_x
-                        result_y = round(ratio_x * image_y)
-                        offset_x = 0
-                        offset_y = round((shot_inner_y - result_y) / 2)
-                    else:
-                        result_x = round(ratio_y * image_x)
-                        result_y = shot_inner_y
-                        offset_x = round((shot_inner_x - result_x) / 2)
-                        offset_y = 0
-                    image = pygame.transform.smoothscale(image, (result_x, result_y))
+                    result_x = round(ratio_y * image_x)
+                    result_y = shot_inner_y
+                    offset_x = round((shot_inner_x - result_x) / 2)
+                    offset_y = 0
+                image = pygame.transform.smoothscale(image, (result_x, result_y))
 
-                screen.fill(frame_color,
-                    (
-                        origin_x + offset_x,
-                        origin_y + offset_y,
-                        result_x + frame_width * 2,
-                        result_y + frame_width * 2,
-                    ))
+            screen.fill(frame_color,
+                (
+                    origin_x + offset_x,
+                    origin_y + offset_y,
+                    result_x + frame_width * 2,
+                    result_y + frame_width * 2,
+                ))
 
-                screen.fill(tile_color,
-                    (
-                        origin_x + frame_width + offset_x,
-                        origin_y + frame_width + offset_y,
-                        result_x,
-                        result_y,
-                    ))
-
-                screen.blit(image, (origin_x + frame_width + offset_x, origin_y + frame_width + offset_y))
-
-                mouseoff = screen.subsurface(
-                    (origin_x + frame_width + offset_x, origin_y + frame_width + offset_y, result_x, result_y)
-                    ).copy()
-                lightmask = pygame.Surface((result_x, result_y), pygame.SRCALPHA, 32)
-                lightmask.convert_alpha()
-                lightmask.fill((255,255,255,255 * highlight_percentage / 100))
-                mouseon = mouseoff.copy()
-                mouseon.blit(lightmask, (0, 0))
-
-
-                frames[index]['ul'] = (
+            screen.fill(tile_color,
+                (
                     origin_x + frame_width + offset_x,
-                    origin_y + frame_width + offset_y
-                    )
-                frames[index]['br'] = (
-                    origin_x + frame_width + offset_x + result_x,
-                    origin_y + frame_width + offset_y + result_y
-                    )
+                    origin_y + frame_width + offset_y,
+                    result_x,
+                    result_y,
+                ))
 
-                frames[index]['mouseon'] = mouseon.copy()
-                frames[index]['mouseoff'] = mouseoff.copy()
+            screen.blit(image, (origin_x + frame_width + offset_x, origin_y + frame_width + offset_y))
 
-                defined_name = False
-                try:
-                    defined_name = config.get('Workspaces', 'workspace_' + str(index))
-                except:
-                    pass
+            mouseoff = screen.subsurface(
+                (origin_x + frame_width + offset_x, origin_y + frame_width + offset_y, result_x, result_y)
+                ).copy()
+            lightmask = pygame.Surface((result_x, result_y), pygame.SRCALPHA, 32)
+            lightmask.convert_alpha()
+            lightmask.fill((255,255,255,255 * highlight_percentage / 100))
+            mouseon = mouseoff.copy()
+            mouseon.blit(lightmask, (0, 0))
 
-                if names_show and (index in global_knowledge.keys() or defined_name):
-                    if not defined_name:
-                        name = global_knowledge[index]['name']
-                    else:
-                        name = defined_name
-                        
-                    name = font.render(name, True, names_color)
-                    name_width = name.get_rect().size[0]
-                    name_x = origin_x + frame_width + offset_x + round((result_x - name_width) / 2)
-                    name_y = origin_y + frame_width + offset_y + result_y + round(result_y * 0.05)
-                    screen.blit(name, (name_x, name_y))
+
+            frames[index]['ul'] = (
+                origin_x + frame_width + offset_x,
+                origin_y + frame_width + offset_y
+                )
+            frames[index]['br'] = (
+                origin_x + frame_width + offset_x + result_x,
+                origin_y + frame_width + offset_y + result_y
+                )
+
+            frames[index]['mouseon'] = mouseon.copy()
+            frames[index]['mouseoff'] = mouseoff.copy()
+
+            defined_name = False
+            try:
+                defined_name = config.get('Workspaces', 'workspace_' + str(index))
+            except:
+                pass
+
+            if names_show and (index in global_knowledge.keys() or defined_name):
+                if not defined_name:
+                    name = global_knowledge[index]['name']
+                else:
+                    name = defined_name
+                    
+                name = font.render(name, True, names_color)
+                name_width = name.get_rect().size[0]
+                name_x = origin_x + frame_width + offset_x + round((result_x - name_width) / 2)
+                name_y = origin_y + frame_width + offset_y + result_y + round(result_y * 0.05)
+                screen.blit(name, (name_x, name_y))
 
         t_init_frames.stop()
 
@@ -507,6 +510,8 @@ def show_ui(source):
         running = True
         use_mouse = True
         workspace_changed = False
+        
+        selected_id = 0
         while running:
             t_run = timer.start("show_ui_run")
             if global_updates_running:
@@ -560,17 +565,17 @@ def show_ui(source):
                 mpos = pygame.mouse.get_pos()
                 active_frame = get_hovered_frame(mpos, frames)
             elif kbdmove != (0, 0):
-                if active_frame == None:
-                    active_frame = 1
                 if kbdmove[0] != 0:
-                    active_frame += kbdmove[0]
+                    selected_id += kbdmove[0]
                 elif kbdmove[1] != 0:
-                    active_frame = min(active_frame + kbdmove[1] * grid_x, n_workspaces)
+                    selected_id = min(selected_id + kbdmove[1] * grid_x, n_workspaces - 1)
 
-                if active_frame > n_workspaces:
-                    active_frame -= n_workspaces
-                elif active_frame <= 0:
-                    active_frame += n_workspaces
+                if selected_id >= n_workspaces:
+                    selected_id -= n_workspaces
+                elif selected_id < 0:
+                    selected_id += n_workspaces
+
+            active_frame = workspace_ids[selected_id]
 
             if jump:
                 if active_frame in global_knowledge.keys():
@@ -605,9 +610,13 @@ def show_ui(source):
 def print_timing(name):
     if name in timer.summary:
         data = timer.summary[name]
-        logging.info(f"{name} (x{data['samples']}): " +
-            f"{data['mean'] * 1000:.4f}ms " +
-            f"({data['min'] * 1000:.4f}/{data['max'] * 1000:.4f}/{data['stddev'] * 1000:.4f})")    
+
+        if not data['mean']:
+            logging.warning(f"{name} timer is NaN")
+        else:
+            logging.info(f"{name} (x{data['samples']}): " +
+                f"{data['mean'] * 1000:.4f}ms " +
+                f"({data['min'] * 1000:.4f}/{data['max'] * 1000:.4f}/{data['stddev'] * 1000:.4f})")    
 
 if __name__ == '__main__':
     try:
