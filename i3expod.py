@@ -599,7 +599,7 @@ def show_ui(source):
     finally:
         logging.info("Closing UI")
         pygame.display.quit()
-        # pygame.display.init()
+        pygame.display.init() # Allows for faster launching
         global_updates_running = True
 
 def print_timing(name):
