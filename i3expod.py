@@ -16,6 +16,7 @@ import time
 import argparse
 import math
 import logging
+import timing
 from threading import Thread
 from PIL import Image, ImageDraw
 
@@ -34,7 +35,7 @@ screenshot_lib = 'prtscn.so'
 screenshot_lib_path = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + screenshot_lib
 grab = ctypes.CDLL(screenshot_lib_path)
 
-
+timer = timing.get_timing_group(__name__)
 
 # PARSE ARGUMENTS
 parser = argparse.ArgumentParser(description="Display an overview of all open workspaces")
@@ -173,6 +174,7 @@ def isset(option):
     except ValueError:
         return False
 
+@timer.measure
 def grab_screen():
     x1 = get_config('Capture','screenshot_offset_x')
     y1 = get_config('Capture','screenshot_offset_y')
@@ -191,6 +193,7 @@ def grab_screen():
     #draw.text((100,100), 'abcde')
     return pygame.image.fromstring(pil.tobytes(), pil.size, pil.mode)
 
+@timer.measure
 def update_workspace(workspace):
     logging.debug(f"Update workspace {workspace.num}")
     if workspace.num not in global_knowledge.keys():
@@ -219,6 +222,7 @@ def workspace_event(i3, e):
 last_update = 0
 
 def update_state(i3, e):
+    t = timer.start("update_state")
     global last_update
 
     if not global_updates_running:
@@ -238,9 +242,9 @@ def update_state(i3, e):
     current_workspace = root.find_focused().workspace()
     update_workspace(current_workspace)
 
-    screenshot = grab_screen()
+    t.stop()
 
-    #time.sleep(0.5)
+    screenshot = grab_screen()
 
     if current_workspace.num == i3ipc.Connection().get_tree().find_focused().workspace().num:
         global_knowledge[current_workspace.num]['screenshot'] = screenshot
@@ -260,6 +264,9 @@ def show_ui(source):
     global workspace_changed
 
     try:
+        t_init = timer.start('show_ui_init')
+        t_init_cfg = timer.start('show_ui_init_cfg')
+
         window_width = get_config('UI', 'window_width')
         window_height = get_config('UI', 'window_height')
         
@@ -292,10 +299,16 @@ def show_ui(source):
         thumb_stretch = get_config('UI', 'thumb_stretch')
         highlight_percentage = get_config('UI', 'highlight_percentage')
 
-        switch_to_empty_workspaces = get_config('UI', 'switch_to_empty_workspaces')
+        t_init_cfg.stop()
+
+        t_init_display = timer.start("show_ui_init_disp")
 
         screen = pygame.display.set_mode((window_width, window_height), pygame.FULLSCREEN)
         pygame.display.set_caption('i3expo')
+
+        t_init_display.stop()
+
+        t_init_calc = timer.start("show_ui_init_calc")
 
         # Calculate UI dimensions
         total_x = screen.get_width()
@@ -329,6 +342,10 @@ def show_ui(source):
         pad_x = max(pad_x, (total_x - space_x * (grid_x - 1) - shot_outer_x * grid_x) / 2)
         pad_y = max(pad_y, (total_y - space_y * (grid_y - 1) - shot_outer_y * grid_y) / 2)
 
+        t_init_calc.stop()
+
+        t_init_missing = timer.start("show_ui_init_missing")
+
         screen.fill(get_config('UI', 'bgcolor'))
         
         missing_x = total_x * 0.3
@@ -344,6 +361,10 @@ def show_ui(source):
         frames = {}
 
         font = pygame.font.SysFont(names_font, names_fontsize)
+
+        t_init_missing.stop()
+
+        t_init_frames = timer.start("show_ui_init_frame")
 
         print(f"Workspaces in memory: {n_workspaces}: {global_knowledge}")
 
@@ -474,12 +495,20 @@ def show_ui(source):
                     name_y = origin_y + frame_width + offset_y + result_y + round(result_y * 0.05)
                     screen.blit(name, (name_x, name_y))
 
+        t_init_frames.stop()
+
+        t_init_flip = timer.start("show_ui_init_flip")
         pygame.display.flip()
+        t_init_flip.stop()
+
+        t_init.stop()
+
 
         running = True
         use_mouse = True
         workspace_changed = False
         while running:
+            t_run = timer.start("show_ui_run")
             if global_updates_running:
                 logging.info("Global updates is running")
                 break
@@ -563,6 +592,8 @@ def show_ui(source):
 
             pygame.display.update()
             pygame.time.wait(25)
+
+            t_run.stop()
     except Exception as err:
         logging.exception("Failed to show UI")
     finally:
@@ -570,6 +601,11 @@ def show_ui(source):
         pygame.display.quit()
         # pygame.display.init()
         global_updates_running = True
+
+def print_timing(name):
+    if name in timer.summary:
+        data = timer.summary[name]
+        logging.info(f"{name} (x{data['samples']}):\t {data['mean'] * 1000:3.4f}ms")    
 
 if __name__ == '__main__':
     try:
@@ -596,3 +632,6 @@ if __name__ == '__main__':
         pass
     except:
         logging.exception("An unknown exception has ocurred")
+    finally:
+        for t in timer.summary:
+            print_timing(t)
