@@ -24,6 +24,6 @@ package() {
     depends+=()
     cd "${pkgname}"
     python setup.py install --root="${pkgdir}" --optimize=1 --skip-build
-    install -D -m 0644 "defaultconfig" "$pkgdir/usr/share/i3expo/config.example"
-		install -D -m 0644 "prtscn.so" "$pkgdir/usr/share/i3expo/prtscn.so"
+    install -D -m 0644 "defaultconfig" "$pkgdir/usr/share/${pkgname}/config.example"
+		install -D -m 0644 "prtscn.so" "$pkgdir/usr/share/${pkgname}/prtscn.so"
 }

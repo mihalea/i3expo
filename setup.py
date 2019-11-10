@@ -16,6 +16,7 @@ setup(name='i3expo',
       license='GPL',
       zip_safe=False,
       install_requires=requirements,
+      setup_requires=requirements,
       py_modules=['i3expod'],
       entry_points={
           'console_scripts': [
