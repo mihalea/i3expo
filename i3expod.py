@@ -31,9 +31,9 @@ pygame.display.init()
 pygame.font.init()
 i3 = i3ipc.Connection()
 
-screenshot_lib = 'prtscn.so'
-screenshot_lib_path = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + screenshot_lib
-grab = ctypes.CDLL(screenshot_lib_path)
+screenshot_lib = '/usr/share/i3expo/prtscn.so'
+# screenshot_lib_path = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + screenshot_lib
+grab = ctypes.CDLL(screenshot_lib)
 
 timer = timing.get_timing_group(__name__)
 
@@ -618,7 +618,8 @@ def print_timing(name):
                 f"{data['mean'] * 1000:.4f}ms " +
                 f"({data['min'] * 1000:.4f}/{data['max'] * 1000:.4f}/{data['stddev'] * 1000:.4f})")    
 
-if __name__ == '__main__':
+
+def main():
     try:
         read_config()
         init_knowledge()
@@ -646,3 +647,7 @@ if __name__ == '__main__':
     finally:
         for t in timer.summary:
             print_timing(t)
+
+
+if __name__ == '__main__':
+    main()
