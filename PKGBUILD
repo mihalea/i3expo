@@ -1,16 +1,15 @@
 # Maintainer Mircea Mihalea <mircea at mihalea dot ro>
 
 pkgname=i3expo-git
-_module='i3expo'
 pkgver=0.4
 pkgrel=1
 pkgdesc="Provide a workspace overview for i3wm"
 url="https://github.com/mihalea/i3expo"
-depends=('python')
-builddepends=('gcc python-setuptools')
+depends=('python' 'python-i3ipc' 'python-pillow-simd' 'python-timing' 'python-pyxdg' 'python-pygame')
+makedepends=('gcc' 'python-setuptools')
 license=('MIT')
 arch=('any')
-provides=('i3expo')
+provides=('i3expod' 'i3expo')
 source=("git+https://github.com/mihalea/i3expo.git")
 md5sums=('SKIP')
 
@@ -27,4 +26,5 @@ package() {
     install -D -m 0644 "defaultconfig" "$pkgdir/usr/share/i3expo/config.example"
 		install -D -m 0644 "prtscn.so" "$pkgdir/usr/share/i3expo/prtscn.so"
 		install -D -m 0644 "prtscn.c" "$pkgdir/usr/share/i3expo/prtscn.c"
+		install -D -m 0644 "LICENSE" "$pkgdir/usr/share/licenses/i3expo/LICENSE"
 }

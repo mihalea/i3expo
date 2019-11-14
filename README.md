@@ -21,24 +21,50 @@ This is based on the work of David Reis, found on [Gitlab](https://gitlab.com/d.
 Example output:
 ![Sample](img/ui.png)
 
+# Installation
+
+## Instructions for Arch Linux:
+Install dependencies with pipman:
+```
+pipman -S timing
+pipman -S pyxdg
+```
+
+Clone, build and install package
+```
+curl https://raw.githubusercontent.com/mihalea/i3expo/master/PKGBUILD -o PKGBUILD
+makepkg -csi
+```
+
+
+## Manual installation
+
+Clone, build and install
+```
+git clone https://github.com/mihalea/i3expo
+cd i3expo
+python setup.py install
+```
+
+Compile `prtscn.c`  and copy files to `/usr/share/i3expo`:
+
+```
+gcc -shared -O3 -Wall -fPIC -Wl,-soname,prtscn -o prtscn.so prtscn.c -lX11
+mkdir /usr/share/i3expo
+cp defaultconfig /usr/share/i3expo/defaultconfig
+cp prtscn.so /usr/share/i3expo/prtscn.so
+```
 # Usage
 
-Compile `prtscn.c`  from `/usr/share/i3expo` as follows:
-
-`gcc -shared -O3 -Wall -fPIC -Wl,-soname,prtscn -o prtscn.so prtscn.c -lX11`
 
 
-A default config can be created by running the following command.
-
-`i3expo --copy-config`
+A default config can be copied to `~/.config/i3expo/config` by running `i3expod --copy-config`
 
 For the other options, `None` or invalid values will usually
 (when `ConfigParser` throws a `ValueError`) be interpreted as "use the default".
 Colors can be specified by using their PyGame names or in #fff or #ffffff hex.
 
-Send `SIGUSR1` to `i3expo` to show the Expo UI, for example by adding a
-`bindsym` for `killall -s SIGUSR1 i3expo` to your i3 `config`. Send `SIGHUP`
-to have the application reload its configuration.
+Use `i3expo -s` to show the i3expo UI, or `i3expo -u` to reload the config file.
 
 Navigate the UI with the mouse or with they keyboard using the arrow
 keys, Return and Escape.
