@@ -16,7 +16,7 @@ The script is run as a background process and reacts to signals in order to open
 its UI in which you get an overview of the known state of your workspaces and
 can select another with the mouse or keyboard.
 
-This is based on the work of David Reis, found on [Gitlab](https://gitlab.com/d.reis/i3expo)
+This is based on the work of [David Reis](https://gitlab.com/d.reis) and [Laur Aliste](https://gitlab.com/laur891).
 
 Example output:
 ![Sample](img/ui.png)
