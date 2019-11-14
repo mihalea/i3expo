@@ -10,7 +10,6 @@ import logging
 import math
 import argparse
 import time
-import pprint
 import traceback
 import sys
 import signal
@@ -20,9 +19,6 @@ import pygame
 import ctypes
 import os
 import configparser
-
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-
 
 global_updates_running = True
 global_knowledge = {'active': -1}
