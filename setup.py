@@ -1,5 +1,8 @@
 import setuptools
 
+with open('requirements.txt') as f:
+    requirements = f.readlines()
+
 with open('README.md') as f:
     long_description = f.read()
 
@@ -12,8 +15,7 @@ setuptools.setup(name='i3expo',
       author_email='mircea@mihalea.ro',
       license='MIT',
       zip_safe=False,
-      # install_requires=requirements,
-      # setup_requires=requirements,
+      install_requires=requirements,
       include_package_data=True,
       packages=setuptools.find_packages(),
       entry_points={
