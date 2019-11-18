@@ -7,7 +7,7 @@ stages:
 
 jobs:
   include:
-    - state: prepare
+    - stage: prepare
       script: ./package/prepare.sh
     - stage: check aur keys
       script: ./package/test.sh
