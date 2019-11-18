@@ -24,16 +24,9 @@ Example output:
 # Installation
 
 ## Instructions for Arch Linux:
-Install dependencies with pipman:
+An installation package is available in the AUR as [i3expo](https://aur.archlinux.org/packages/i3expo), which can be installed with your favourite helper
 ```
-pipman -S timing
-pipman -S pyxdg
-```
-
-Clone, build and install package
-```
-curl https://raw.githubusercontent.com/mihalea/i3expo/master/PKGBUILD -o PKGBUILD
-makepkg -csi
+yay -S i3expo
 ```
 
 
