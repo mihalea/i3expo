@@ -1,15 +1,14 @@
 stages:
-  - name: prepare
-  - name: check aur keys
+  - name: check configuration
     if: branch = deploy
   - name: deploy
     if: tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/ AND branch = master
 
 jobs:
   include:
-    - stage: prepare
-      script: ./package/prepare.sh
-    - stage: check aur keys
+    - stage: check configuration
+      install: ./package/prepare.sh
       script: ./package/test.sh
     - stage: deploy
+      install: ./package/prepare.sh
       script: ./package/deploy.sh
