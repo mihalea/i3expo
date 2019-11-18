@@ -96,15 +96,20 @@ def get_color(raw):
 
 
 def read_config():
+    global config
+
+    converters = {'color': get_color}
+
     pygame.display.init()
     disp_info = pygame.display.Info()
 
-    config.read_dict({
+    defaults = {
         'Capture': {
             'screenshot_width': disp_info.current_w,
             'screenshot_height': disp_info.current_h,
             'screenshot_offset_x': 0,
             'screenshot_offset_y': 0,
+            'screenshot_delay': 0.2
         },
         'UI': {
             'window_width': disp_info.current_w,
@@ -134,8 +139,15 @@ def read_config():
             'forced_update_interval': 10.0,
             'debounce_period': 1.0,
         }
-    })
+    }
     pygame.display.quit()
+
+    config = configparser.ConfigParser(
+        converters=converters
+    )
+
+    config.read_dict(defaults)
+
 
     root_dir = os.path.dirname(config_path)
     if not os.path.exists(root_dir):
@@ -233,6 +245,10 @@ def should_update(rate_limit_period, current_workspace, force):
 
 
 def update_state(i3, e=None, rate_limit_period=None, force=False):
+    # Prevent screenshoft from being takes too fast and capturing
+    # the still unchanged workspace instead of the new one
+    time.sleep(config.getfloat('Capture', 'screenshot_delay'))
+
     t = timer.start("update_state")
     global last_update
 
@@ -241,8 +257,7 @@ def update_state(i3, e=None, rate_limit_period=None, force=False):
 
     update_workspace(current_workspace)
     if should_update(rate_limit_period, current_workspace, force):
-        logging.debug("Update state rate_limit_period=%s force=%s",
-                  rate_limit_period, force)
+        logging.debug("Update state for workspace %s", current_workspace.num)
         
         workspaces = [w.num for w in root.workspaces()]
         deleted = []
@@ -642,7 +657,7 @@ def setup_logging():
 
 
 def main():
-    global config, update_debounced
+    global update_debounced
     try:
         setup_logging()
         save_pid()
@@ -652,8 +667,6 @@ def main():
         signal.signal(signal.SIGHUP, signal_reload)
         signal.signal(signal.SIGUSR1, signal_show)
 
-        converters = {'color': get_color}
-        config = configparser.ConfigParser(converters=converters)
         read_config()
 
         update_debounced = Debounce(config.getfloat(
