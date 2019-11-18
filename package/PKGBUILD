@@ -1,6 +1,6 @@
 # Maintainer Mircea Mihalea <mircea at mihalea dot ro>
 
-pkgname=i3expo-git
+pkgname=i3expo
 pkgver=1.1.1
 pkgrel=1
 pkgdesc="Provide a workspace overview for i3wm"
@@ -9,8 +9,8 @@ depends=('python' 'python-i3ipc' 'python-pillow-simd' 'python-pygame' 'python-xd
 makedepends=('gcc' 'python-setuptools')
 license=('MIT')
 arch=('any')
-provides=('i3expod' 'i3expo')
-source=("git+https://github.com/mihalea/i3expo.git")
+provides=('i3expo-daemon' 'i3expo')
+source=("git+https://github.com/mihalea/${pkgname}.git#tag=v${pkgver}")
 md5sums=('SKIP')
 
 build() {
@@ -23,7 +23,7 @@ package() {
     depends+=()
     cd "i3expo"
     python setup.py install --root="${pkgdir}" --optimize=1 --skip-build
-		install -D -m 0644 "prtscn.so" "$pkgdir/usr/share/i3expo/prtscn.so"
-		install -D -m 0644 "package/prtscn.c" "$pkgdir/usr/share/i3expo/prtscn.c"
-		install -D -m 0644 "LICENSE" "$pkgdir/usr/share/licenses/i3expo/LICENSE"
+		install -D -m 0644 "prtscn.so" "${pkgdir}/usr/share/${pkgname}/prtscn.so"
+		install -D -m 0644 "package/prtscn.c" "${pkgdir}/usr/share/${pkgname}/prtscn.c"
+		install -D -m 0644 "LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
