@@ -1,6 +1,0 @@
-enum-compat
-i3ipc
-pygame
-python-xlib
-pyxdg
-six
