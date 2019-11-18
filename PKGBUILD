@@ -23,7 +23,6 @@ package() {
     depends+=()
     cd "i3expo"
     python setup.py install --root="${pkgdir}" --optimize=1 --skip-build
-    install -D -m 0644 "defaultconfig" "$pkgdir/usr/share/i3expo/config.example"
 		install -D -m 0644 "prtscn.so" "$pkgdir/usr/share/i3expo/prtscn.so"
 		install -D -m 0644 "prtscn.c" "$pkgdir/usr/share/i3expo/prtscn.c"
 		install -D -m 0644 "LICENSE" "$pkgdir/usr/share/licenses/i3expo/LICENSE"
