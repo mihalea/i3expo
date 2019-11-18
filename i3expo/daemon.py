@@ -9,7 +9,6 @@ from i3expo.geometry import Geometry, Dimension
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
-import timing
 import logging
 import math
 import argparse
@@ -31,10 +30,6 @@ i3 = i3ipc.Connection()
 screenshot_lib = '/usr/share/i3expo/prtscn.so'
 grab = ctypes.CDLL(screenshot_lib)
 
-timer = timing.get_timing_group(__name__)
-
-# PARSE ARGUMENTS
-t_args = timer.start("args")
 parser = argparse.ArgumentParser(
     description="Display an overview of all open workspaces")
 parser.add_argument("-v", "--verbose",
@@ -43,10 +38,7 @@ parser.add_argument("-i", "--interval",
                     help="Update interval in seconds (default: 1s)")
 parser.add_argument("-d", "--dedicated",
                     help="Launch on a dedicated workspace", action="store_true")
-parser.add_argument("-t", "--timings",
-                    help="Show debug timing data", action="store_true")
 args = parser.parse_args()
-t_args.stop()
 
 loop_interval = 100.0
 config = None
@@ -162,8 +154,6 @@ def read_config():
         with open(config_path, 'w') as f:
             config.write(f)
 
-
-@timer.measure
 def grab_screen():
     logging.debug("Grabbing screen")
     x1 = config.getint('Capture', 'screenshot_offset_x')
@@ -186,7 +176,6 @@ def process_image(raw_img):
     return pygame.image.fromstring(pil.tobytes(), pil.size, pil.mode)
 
 
-@timer.measure
 def update_workspace(workspace):
     # logging.debug("Update workspace %s", workspace.num)
     if workspace.num not in global_knowledge.keys():
@@ -252,7 +241,6 @@ def update_state(i3, e=None, rate_limit_period=None, force=False):
     # the still unchanged workspace instead of the new one
     time.sleep(config.getfloat('Capture', 'screenshot_delay'))
 
-    t = timer.start("update_state")
     global last_update
 
     root = i3.get_tree()
@@ -269,8 +257,6 @@ def update_state(i3, e=None, rate_limit_period=None, force=False):
                 deleted.append(num)
         for num in deleted:
             del global_knowledge[num]
-
-        t.stop()
 
         global_knowledge[current_workspace.num]['screenshot'] = grab_screen()
         global_knowledge[current_workspace.num]['last_update'] = time.time()
@@ -320,7 +306,6 @@ def input_loop(screen, source, tiles, columns):
 
     selected_id = 0
     while running:
-        t_run = timer.start("show_ui_run")
         if global_updates_running:
             logging.info("Global updates is running")
             break
@@ -404,8 +389,6 @@ def input_loop(screen, source, tiles, columns):
 
         pygame.display.update()
         pygame.time.wait(25)
-
-        t_run.stop()
 
 
 def init_geometry(screen):
@@ -630,19 +613,6 @@ def draw_missing_tile(screen):
 
     return missing
 
-
-def print_timing(name):
-    if name in timer.summary:
-        data = timer.summary[name]
-
-        if not data['mean']:
-            logging.warning(f"{name} timer is NaN")
-        else:
-            logging.info(f"{name} (x{data['samples']}): " +
-                         f"{data['mean'] * 1000:.4f}ms " +
-                         f"({data['min'] * 1000:.4f}/{data['max'] * 1000:.4f}/{data['stddev'] * 1000:.4f})")
-
-
 def save_pid():
     pid = os.getpid()
     uid = os.getuid()
@@ -702,10 +672,6 @@ def main():
         pass
     except:
         logging.exception("An unknown exception has ocurred")
-    finally:
-        if args.timings:
-            for t in timer.summary:
-                print_timing(t)
 
 
 if __name__ == '__main__':
