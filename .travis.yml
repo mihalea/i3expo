@@ -4,14 +4,14 @@ before_install:
   - ./package/prepare.sh
 
 stages:
-  - name: test
+  - name: check_aur
     if: branch = deploy
   - name: deploy
     if: tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/ AND branch = master
 
 jobs:
   include:
-    stage: test
+    stage: check_aur
     script: ./package/test.sh
     stage: deploy
     script: ./package/deploy.sh
