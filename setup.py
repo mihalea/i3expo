@@ -1,10 +1,20 @@
 import setuptools
+from pkg_resources import get_distribution, DistributionNotFound
 
 with open('requirements.txt') as f:
     requirements = f.readlines()
 
 with open('README.md') as f:
     long_description = f.read()
+
+def get_dist(pkgname):
+    try:
+        return get_distribution(pkgname)
+    except DistributionNotFound:
+        return None
+
+pillow_req = 'pillow-simd' if get_dist('pillow-simd') else 'pillow'
+requirements.append(pillow_req)
 
 setuptools.setup(name='i3expo',
       version='1.1.1',
