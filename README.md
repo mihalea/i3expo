@@ -56,18 +56,54 @@ cp prtscn.so /usr/share/i3expo/prtscn.so
 ```
 # Usage
 
+## Quick start
 
+```
+// Start the daemon
+$ i3expod
 
-A default config can be copied to `~/.config/i3expo/config` by running `i3expod --copy-config`
+// Show the UI
+$ i3expo -s
+```
 
-For the other options, `None` or invalid values will usually
+## Configuration
+
+A default config will be copied to `~/.config/i3expo/config` if not found when 
+the application is first started. `None` or invalid values will usually
 (when `ConfigParser` throws a `ValueError`) be interpreted as "use the default".
 Colors can be specified by using their PyGame names or in #fff or #ffffff hex.
 
-Use `i3expo -s` to show the i3expo UI, or `i3expo -u` to reload the config file.
+### Daemon: `i3expod`
 
-Navigate the UI with the mouse or with they keyboard using the arrow
-keys, Return and Escape.
+```
+usage: i3expod [-h] [-v] [-i INTERVAL] [-d] [-t]
+
+Display an overview of all open workspaces
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --verbose         Print more program data
+  -i INTERVAL, --interval INTERVAL
+                        Update interval in seconds (default: 1s)
+  -d, --dedicated       Launch on a dedicated workspace
+  -t, --timings         Show debug timing data
+```
+
+### Client: `i3expo`
+
+```
+usage: i3expo [-h] [-u] [-s]
+
+Interact with the i3expo daemon
+
+optional arguments:
+  -h, --help           show this help message and exit
+  -u, --update-config  Update config from file
+  -s, --show           Show expo UI
+```
+
+Aftering displaying the UI, it can be navigated with the mouse or with they keyboard using the arrow
+keys or hjkl, and Return to select and Escape to exit.
 
 # Limitations
 
