@@ -1,0 +1,3 @@
+before_install:
+  - openssl aes-256-cbc -K $encrypted_3166097aa039_key -iv $encrypted_3166097aa039_iv
+    -in package/private_key.enc -out package/private_key -d
