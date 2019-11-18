@@ -86,7 +86,6 @@ optional arguments:
   -i INTERVAL, --interval INTERVAL
                         Update interval in seconds (default: 1s)
   -d, --dedicated       Launch on a dedicated workspace
-  -t, --timings         Show debug timing data
 ```
 
 ### Client: `i3expo`
