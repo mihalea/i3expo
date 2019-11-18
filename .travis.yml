@@ -7,8 +7,8 @@ stages:
 jobs:
   include:
     - stage: check configuration
-      before_script: ./package/prepare.sh
+      before_script: source ./package/prepare.sh
       script: ./package/test.sh
     - stage: deploy
-      before_script: ./package/prepare.sh
+      before_script: source ./package/prepare.sh
       script: ./package/deploy.sh

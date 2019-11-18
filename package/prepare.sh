@@ -16,7 +16,7 @@ tar -Jxf pacman.pkg.tar.xz
 export MAKEPKG_DIR="$(pwd)/usr/bin"
 export PATH="$MAKEPKG_DIR:$PATH"
 export LIBRARY="$(pwd)/usr/share/makepkg"
-config="$(pwd)/etc/makepkg.conf"
+export MAKEPKG_CONF="$(pwd)/etc/makepkg.conf"
 echo "Installed makepkg"
 
 # Set up git to use the private key and skip host checking
