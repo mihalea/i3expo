@@ -5,6 +5,10 @@ from PIL import Image, ImageDraw
 from threading import Thread
 from i3expo.debounce import Debounce
 from i3expo.geometry import Geometry, Dimension
+
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+
 import timing
 import logging
 import math
@@ -17,7 +21,6 @@ import copy
 import i3ipc
 import pygame
 import ctypes
-import os
 import configparser
 
 global_updates_running = True
@@ -364,6 +367,7 @@ def input_loop(screen, source, tiles, columns):
         if use_mouse:
             mpos = pygame.mouse.get_pos()
             active_frame = get_hovered_frame(mpos, tiles)
+            logging.debug("Mouse selected: %s", active_frame)
         elif kbdmove != (0, 0):
             if kbdmove[0] != 0:
                 selected_id += kbdmove[0]
@@ -375,9 +379,9 @@ def input_loop(screen, source, tiles, columns):
             elif selected_id < 0:
                 selected_id += len(tiles)
 
-            logging.debug("Active frame: %s", active_frame)
+            active_frame = tiles[selected_id]['ws_num']
+            logging.debug("Keyboard selected: %s", active_frame)
 
-        active_frame = tiles[selected_id]['ws_num']
 
         if jump:
             if active_frame in global_knowledge.keys():
