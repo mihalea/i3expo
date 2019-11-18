@@ -1,16 +1,7 @@
 enum-compat
-gitdb2
-gitpython
 i3ipc
-numpy
-packaging
 pillow
 pygame
-pyparsing
 python-xlib
 pyxdg
-semver
 six
-smmap2
-timing
-version-query

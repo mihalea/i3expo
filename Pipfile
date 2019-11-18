@@ -14,7 +14,6 @@ pygame = "*"
 i3ipc = "*"
 pillow = "*"
 pyxdg = "*"
-timing = "*"
 
 [requires]
 python_version = "3.7"
