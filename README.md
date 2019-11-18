@@ -60,7 +60,7 @@ cp prtscn.so /usr/share/i3expo/prtscn.so
 
 ```
 // Start the daemon
-$ i3expod
+$ i3expo-daemon
 
 // Show the UI
 $ i3expo -s
@@ -76,7 +76,7 @@ Colors can be specified by using their PyGame names or in #fff or #ffffff hex.
 ### Daemon: `i3expod`
 
 ```
-usage: i3expod [-h] [-v] [-i INTERVAL] [-d] [-t]
+usage: i3expo-daemon [-h] [-v] [-i INTERVAL] [-d] [-t]
 
 Display an overview of all open workspaces
 

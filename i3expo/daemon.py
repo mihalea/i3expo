@@ -3,8 +3,8 @@
 from xdg.BaseDirectory import xdg_config_home
 from PIL import Image, ImageDraw
 from threading import Thread
-from debounce import Debounce
-from geometry import Geometry, Dimension
+from i3expo.debounce import Debounce
+from i3expo.geometry import Geometry, Dimension
 import timing
 import logging
 import math
