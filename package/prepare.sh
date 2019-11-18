@@ -6,8 +6,8 @@ set -e
 echo ""
 
 # Decrypt private key
-openssl aes-256-cbc -K $encrypted_e4b13d5114eb_key -iv $encrypted_e4b13d5114eb_iv -in package/private_key.enc -out /tmp/deploy_key -d
-chmod 600 /tmp/deploy_key
+openssl aes-256-cbc -K $encrypted_e4b13d5114eb_key -iv $encrypted_e4b13d5114eb_iv -in package/private_key.enc -out /tmp/private_key -d
+chmod 600 /tmp/private_key
 echo "Decrypted and permissioned the deployment key"
 
 # Set up to run makepkg
