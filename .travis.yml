@@ -1,17 +1,14 @@
-language: python
-
-jobs:
-  include:
-    stage: prepare
-    script: ./package/prepare.sh
-    stage: test
-    script: ./package/test.sh
-    stage: deploy
-    script: ./package/deploy.sh
-
 stages:
-  - name: prepare
-  - name: test
+  - name: check configuration
     if: branch = deploy
   - name: deploy
     if: tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/ AND branch = master
+
+jobs:
+  include:
+    - stage: check configuration
+      before_script: source ./package/prepare.sh
+      script: ./package/test.sh
+    - stage: deploy
+      before_script: source ./package/prepare.sh
+      script: ./package/deploy.sh

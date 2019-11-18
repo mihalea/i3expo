@@ -6,9 +6,8 @@ set -e
 echo ""
 
 # Decrypt private key
-openssl aes-256-cbc -K $encrypted_3166097aa039_key -iv $encrypted_3166097aa039_iv
-    -in package/private_key.enc -out /tmp/private_key -d
-chmod 600 /tmp/deploy_key
+openssl aes-256-cbc -K $encrypted_e4b13d5114eb_key -iv $encrypted_e4b13d5114eb_iv -in package/private_key.enc -out /tmp/private_key -d
+chmod 600 /tmp/private_key
 echo "Decrypted and permissioned the deployment key"
 
 # Set up to run makepkg
@@ -17,7 +16,7 @@ tar -Jxf pacman.pkg.tar.xz
 export MAKEPKG_DIR="$(pwd)/usr/bin"
 export PATH="$MAKEPKG_DIR:$PATH"
 export LIBRARY="$(pwd)/usr/share/makepkg"
-config="$(pwd)/etc/makepkg.conf"
+export MAKEPKG_CONF="$(pwd)/etc/makepkg.conf"
 echo "Installed makepkg"
 
 # Set up git to use the private key and skip host checking

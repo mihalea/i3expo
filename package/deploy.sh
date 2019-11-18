@@ -9,7 +9,7 @@ git clone ssh://aur@aur.archlinux.org/i3expo.git aur
 # Update it
 cp PKGBUILD aur
 cd aur
-/bin/bash "$MAKEPKG_DIR/makepkg" --config="$config" --printsrcinfo > .SRCINFO
+/bin/bash "$MAKEPKG_DIR/makepkg" --config="$MAKEPKG_CONFIG" --printsrcinfo > .SRCINFO
 
 # Commit
 git add PKGBUILD .SRCINFO
