@@ -94,15 +94,18 @@ optional arguments:
   -s, --show           Show expo UI
 ```
 
-Aftering displaying the UI, it can be navigated with the mouse or with they keyboard using the arrow
-keys or hjkl, and Return to select and Escape to exit.
+Aftering displaying the UI, it can be navigated with the mouse or with they keyboard using the arrow keys or hjkl, and Return to select and Escape to exit.
+
+# Security
+
+No screenshots are being saved on disk, and they are only available in the memory of the program. Python doesn't provide low level control over memory, screenshot data is being handled by the Python Garbage Collector. However, normal usage shouldn't be affected by this, as the kernel prevents processes from accessing memory not allocated to them.  
+
 
 # Limitations
 
 Since it works by taking screenshots, the application cannot know workspaces it
 hasn't seen yet. Furthermore, the updates are less continuous than you might be
-used to if you're coming from a compositing WM where they can happen live and in
-the background.
+used to if you're coming from a compositing WM where they can happen live and in the background.
 
 # Credit
 
