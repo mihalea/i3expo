@@ -36,16 +36,16 @@ Clone, build and install
 ```
 git clone https://github.com/mihalea/i3expo
 cd i3expo
-python setup.py install
+sudo python setup.py install
 ```
 
 Compile `prtscn.c`  and copy files to `/usr/share/i3expo`:
 
 ```
-gcc -shared -O3 -Wall -fPIC -Wl,-soname,prtscn -o prtscn.so prtscn.c -lX11
-mkdir /usr/share/i3expo
-cp defaultconfig /usr/share/i3expo/defaultconfig
-cp prtscn.so /usr/share/i3expo/prtscn.so
+gcc -shared -O3 -Wall -fPIC -Wl,-soname,prtscn -o package/prtscn.so prtscn.c -lX11
+sudo mkdir /usr/share/i3expo
+sudo cp defaultconfig /usr/share/i3expo/defaultconfig
+sudo cp package/prtscn.so /usr/share/i3expo/prtscn.so
 ```
 # Usage
 
