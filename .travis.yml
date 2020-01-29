@@ -4,6 +4,10 @@ stages:
   - name: deploy
     if: tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
 
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y install zstd
+
 jobs:
   include:
     - stage: check configuration

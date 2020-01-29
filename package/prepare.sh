@@ -11,8 +11,8 @@ chmod 600 /tmp/private_key
 echo "Decrypted and permissioned the deployment key"
 
 # Set up to run makepkg
-wget https://www.archlinux.org/packages/core/x86_64/pacman/download/ -O pacman.pkg.tar.xz
-tar -Jxf pacman.pkg.tar.xz
+wget https://www.archlinux.org/packages/core/x86_64/pacman/download/ -O pacman.pkg.tar.zst
+tar --use-compress-program zstd -xf pacman.pkg.tar.zst
 export MAKEPKG_DIR="$(pwd)/usr/bin"
 export PATH="$MAKEPKG_DIR:$PATH"
 export LIBRARY="$(pwd)/usr/share/makepkg"
