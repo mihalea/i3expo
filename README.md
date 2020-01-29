@@ -1,14 +1,14 @@
 # Overwiew
 
 i3expo is an simple and straightforward way to get a visual impression of all your
-current virtual desktops that many compositing window managers use.  It's not a
+current virtual desktops that many compositing window managers use. It's not a
 very powerful approach, but a very intuitive one and especially fits workflows
 that use lots of temporary windows or those in which the workspaces are mentally
 arranged in a grid.
 
 i3expo emulates that function within the limitations of a non-compositing window
 manager. By listening to the IPC, it takes a screenshot whenever a window event
-occurrs. Thanks to an extremely fast C library, this produces negligible
+occurrs. Using to an extremely fast C library, this produces negligible
 overhead in normal operation and allows the script to remember what state you
 left a workspace in.
 
@@ -24,22 +24,24 @@ Example output:
 # Installation
 
 ## Instructions for Arch Linux:
+
 An installation package is available in the AUR as [i3expo](https://aur.archlinux.org/packages/i3expo), which can be installed with your favourite helper
+
 ```
 yay -S i3expo
 ```
 
-
 ## Manual installation
 
 Clone, build and install
+
 ```
 git clone https://github.com/mihalea/i3expo
 cd i3expo
 python setup.py install
 ```
 
-Compile `prtscn.c`  and copy files to `/usr/share/i3expo`:
+Compile `prtscn.c` and copy files to `/usr/share/i3expo`:
 
 ```
 gcc -shared -O3 -Wall -fPIC -Wl,-soname,prtscn -o prtscn.so prtscn.c -lX11
@@ -47,6 +49,17 @@ mkdir /usr/share/i3expo
 cp defaultconfig /usr/share/i3expo/defaultconfig
 cp prtscn.so /usr/share/i3expo/prtscn.so
 ```
+
+## Dependencies
+
+A minimum version of Python 3.6 is required to run this application, as it does not support any older versions.
+
+The following Python packages are required to run this application:
+
+- [pyxdg](https://pypi.org/project/pygame/)
+- [i3ipc](https://pypi.org/project/i3ipc/)
+- [pygame](https://pypi.org/project/pyxdg/)
+
 # Usage
 
 ## Quick start
@@ -61,7 +74,7 @@ $ i3expo -s
 
 ## Configuration
 
-A default config will be copied to `~/.config/i3expo/config` if not found when 
+A default config will be copied to `~/.config/i3expo/config` if not found when
 the application is first started. `None` or invalid values will usually
 (when `ConfigParser` throws a `ValueError`) be interpreted as "use the default".
 Colors can be specified by using their PyGame names or in #fff or #ffffff hex.
@@ -94,15 +107,17 @@ optional arguments:
   -s, --show           Show expo UI
 ```
 
-Aftering displaying the UI, it can be navigated with the mouse or with they keyboard using the arrow
-keys or hjkl, and Return to select and Escape to exit.
+Aftering displaying the UI, it can be navigated with the mouse or with they keyboard using the arrow keys or hjkl, and Return to select and Escape to exit.
+
+# Security
+
+No screenshots are being saved on disk, and they are only available in the memory of the program. Python doesn't provide low level control over memory, screenshot data is being handled by the Python Garbage Collector. However, normal usage shouldn't be affected by this, as the kernel prevents processes from accessing memory not allocated to them.
 
 # Limitations
 
 Since it works by taking screenshots, the application cannot know workspaces it
 hasn't seen yet. Furthermore, the updates are less continuous than you might be
-used to if you're coming from a compositing WM where they can happen live and in
-the background.
+used to if you're coming from a compositing WM where they can happen live and in the background.
 
 # Credit
 
