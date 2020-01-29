@@ -21,7 +21,7 @@ pillow_req = 'pillow-simd' if get_dist('pillow-simd') else 'pillow'
 requirements.append(pillow_req)
 
 setuptools.setup(name='i3expo',
-                 version='1.1.1',
+                 version='1.1.2',
                  description='Provide a workspace overview for i3wm',
                  long_description=long_description,
                  url='https://github.com/mihalea/i3expo',
