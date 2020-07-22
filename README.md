@@ -20,6 +20,7 @@ This is based on the work of [David Reis](https://gitlab.com/d.reis) and [Laur A
 
 Example output:
 ![Sample](img/ui.png)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmihalea%2Fi3expo.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmihalea%2Fi3expo?ref=badge_shield)
 
 # Installation
 
@@ -123,3 +124,7 @@ used to if you're coming from a compositing WM where they can happen live and in
 
 Stackoverflow user JHolta for the screenshot library to be found in this thread:
 https://stackoverflow.com/questions/69645/take-a-screenshot-via-a-python-script-linux
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmihalea%2Fi3expo.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmihalea%2Fi3expo?ref=badge_large)
