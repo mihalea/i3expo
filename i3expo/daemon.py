@@ -303,6 +303,7 @@ def show_ui(source):
 def input_loop(screen, source, tiles, columns):
     running = True
     use_mouse = True
+    active_frame = None
 
     selected_id = 0
     while running:
@@ -368,7 +369,7 @@ def input_loop(screen, source, tiles, columns):
             logging.debug("Keyboard selected: %s", active_frame)
 
 
-        if jump:
+        if active_frame is not None and jump:
             if active_frame in global_knowledge.keys():
                 logging.info('Switching to workspace %s', active_frame)
                 i3.command(f'workspace number {active_frame}')
