@@ -178,6 +178,9 @@ def process_image(raw_img):
 
 def update_workspace(workspace):
     # logging.debug("Update workspace %s", workspace.num)
+    if workspace.name == 'i3expod-temporary-workspace':
+        return
+    
     if workspace.num not in global_knowledge.keys():
         global_knowledge[workspace.num] = {
             'name': None,
